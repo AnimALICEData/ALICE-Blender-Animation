@@ -19,7 +19,7 @@ import random
 filename = os.path.join(os.path.basename(bpy.data.filepath), "particle.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
-t_video=10 # total video duration in seconds
+t_video=20 # total video duration in seconds
 t_simulado=0.01 # tempo em microssegundos ~ tempo para percorrer 3m na velocidade da luz
 fps = 24 # frames per second
 N_frames=t_video*fps # Total number of frames
@@ -34,10 +34,10 @@ clYellow = (1, 1, 0)
 particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clMagenta, "Kaon": clYellow}
 
 # Particle radius
-r_part = 0.05
+r_part = 0.02
 
 # Event Multiplicity
-n_particles = 10
+n_particles = 5
 
 # Configure Environment
 bcs = bpy.context.scene
@@ -47,7 +47,7 @@ bcs.world.light_settings.environment_energy = 0.1
 
 # Configure Output
 bcsr = bcs.render
-bcsr.resolution_percentage = 50
+bcsr.resolution_percentage = 100
 bcsr.image_settings.file_format = 'FFMPEG'
 bcsr.ffmpeg.format = "MPEG4"
 bcsr.ffmpeg.codec = "H264"
@@ -59,8 +59,9 @@ bcsr.ffmpeg.buffersize = 224 * 8
 bcsr.ffmpeg.packetsize = 2048
 bcsr.ffmpeg.muxrate = 10080000
 
+fileidentifier="_Gaussian_rpart0.2_noshadows_"
 xpixels = int(bcsr.resolution_percentage * bcsr.resolution_x / 100)
-output_prefix="N"+str(n_particles)+"_Gaussian_"+str(xpixels)+"px_"
+output_prefix="N"+str(n_particles)+fileidentifier+str(xpixels)+"px_"
 bcsr.filepath = "/tmp/blender/"+output_prefix
 #bcsr.threads_mode = 'FIXED'
 #bcsr.threads = 16
@@ -79,12 +80,15 @@ def create(particles):
         bpy.data.materials.new(name=type)
         #bpy.context.object.active_material = (1, 0, 0)
         bpy.data.materials[type].diffuse_color = particle_colors[type]
+        bpy.data.materials[type].use_shadows = False
+        bpy.data.materials[type].use_cast_shadows = False
 
     # Create blender spheres (particles)
     for particle in particles:
         this_type=random.choice(particle_types)
         print("Adding Sphere - Particle " + str(len(blender_particles))+" of "+str(n_particles-1)+" - "+this_type)
         bpy.ops.mesh.primitive_uv_sphere_add()
+        bpy.ops.object.shade_smooth()
         this_particle = bpy.context.object
         this_particle.name = "part"+str(particle.iDx)
         this_particle.location=((particle.x,particle.y,particle.z))
@@ -112,7 +116,7 @@ bpy.data.objects.remove(bpy.data.objects['Cube'])
 
 camera_forward=bpy.data.objects['Camera']
 camera_forward.name = 'ForwardCamera'
-camera_forward.location=(0,0,6)
+camera_forward.location=(0,0,10)
 camera_forward.rotation_euler[0] = 0
 camera_forward.rotation_euler[2] = 0
 
@@ -138,7 +142,7 @@ bpy.context.scene.frame_current = 20
 ##  - Add simple geometry of the ALICE detector
 
 ## Save blender file
-#bpy.ops.wm.save_as_mainfile(filepath="/home/pezzi/particles_"+str(n_particles)+".blend")
+#bpy.ops.wm.save_as_mainfile(filepath="/tmp/N"+str(n_particles)+fileidentifier+".blend")
 
 # Render animation
 bpy.ops.render.render(animation=True)
