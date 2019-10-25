@@ -19,8 +19,8 @@ import random
 filename = os.path.join(os.path.basename(bpy.data.filepath), "particle.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
-t_video=10 # total video duration in seconds
-t_simulado=0.01 # tempo em microssegundos ~ tempo para percorrer 3m na velocidade da luz
+t_video=15 # total video duration in seconds
+t_simulado=0.015 # tempo em microssegundos ~ tempo para percorrer 3m na velocidade da luz
 fps = 24 # frames per second
 N_frames=t_video*fps # Total number of frames
 delta_t=t_simulado/N_frames # time elapsed per frame
@@ -37,7 +37,7 @@ particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clM
 r_part = 0.05
 
 # Event Multiplicity
-n_particles = 10
+n_particles = 200
 
 # Configure Environment
 bcs = bpy.context.scene
@@ -112,9 +112,13 @@ bpy.data.objects.remove(bpy.data.objects['Cube'])
 
 camera_forward=bpy.data.objects['Camera']
 camera_forward.name = 'ForwardCamera'
-camera_forward.location=(0,0,6)
+camera_forward.location=(0,0,20)
 camera_forward.rotation_euler[0] = 0
 camera_forward.rotation_euler[2] = 0
+camera_forward.data.type = 'ORTHO'
+camera_forward.data.ortho_scale = 10
+
+
 
 bpy.ops.object.camera_add(location=(6, 0, 0), rotation=(0, 1.5708, 0))
 #bpy.context.object.rotation_euler[1] = 1.5708
@@ -129,6 +133,27 @@ particles = createNparticlesPropGaussian(n_particles)
 # Create blender objects
 blender_particles = create(particles)
 
+# ALICE TPC
+print("Adding ALICE TPC")
+bpy.data.materials.new(name="TPC")
+bpy.data.materials["TPC"].diffuse_color = (0, 0.635632, 0.8)
+bpy.data.materials["TPC"].use_shadows = False
+bpy.data.materials["TPC"].use_cast_shadows = False
+bpy.data.materials["TPC"].use_transparency = True
+bpy.data.materials["TPC"].alpha = 1
+bpy.data.materials["TPC"].specular_alpha = 0
+bpy.data.materials["TPC"].raytrace_transparency.fresnel_factor = 5
+bpy.data.materials["TPC"].raytrace_transparency.fresnel = 0.3
+
+
+bpy.ops.mesh.primitive_cylinder_add(radius=2.5, depth=5, view_align=False, enter_editmode=False, location=(0, 0, 0))
+TPC = bpy.context.object
+TPC.name = "TPC"
+TPC.data.materials.clear()
+TPC.data.materials.append(bpy.data.materials["TPC"])
+
+
+
 #Animate Scene
 animate(blender_particles)
 bpy.context.scene.frame_current = 20
@@ -141,6 +166,6 @@ bpy.context.scene.frame_current = 20
 #bpy.ops.wm.save_as_mainfile(filepath="/home/pezzi/particles_"+str(n_particles)+".blend")
 
 # Render animation
-bpy.ops.render.render(animation=True)
+#bpy.ops.render.render(animation=True)
 
 #exit()
