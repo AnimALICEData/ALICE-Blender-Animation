@@ -37,7 +37,7 @@ particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clM
 r_part = 0.05
 
 # Event Multiplicity
-n_particles = 200
+n_particles = 1000
 
 # Configure Environment
 bcs = bpy.context.scene
@@ -47,7 +47,7 @@ bcs.world.light_settings.environment_energy = 0.1
 
 # Configure Output
 bcsr = bcs.render
-bcsr.resolution_percentage = 50
+bcsr.resolution_percentage = 100
 bcsr.image_settings.file_format = 'FFMPEG'
 bcsr.ffmpeg.format = "MPEG4"
 bcsr.ffmpeg.codec = "H264"
@@ -79,6 +79,8 @@ def create(particles):
         bpy.data.materials.new(name=type)
         #bpy.context.object.active_material = (1, 0, 0)
         bpy.data.materials[type].diffuse_color = particle_colors[type]
+        bpy.data.materials[type].use_shadows = False
+        bpy.data.materials[type].use_cast_shadows = False
 
     # Create blender spheres (particles)
     for particle in particles:
@@ -166,6 +168,6 @@ bpy.context.scene.frame_current = 20
 #bpy.ops.wm.save_as_mainfile(filepath="/home/pezzi/particles_"+str(n_particles)+".blend")
 
 # Render animation
-#bpy.ops.render.render(animation=True)
+bpy.ops.render.render(animation=True)
 
 #exit()

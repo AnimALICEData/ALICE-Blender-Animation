@@ -28,7 +28,7 @@ def createNparticles(N_particles, x = 0, y = 0, z = 0):  # Create particles at g
 
 # Derived class to computes the time evolution particle positions
 class ParticlePropagator(Particle):
-    def SetMagneticField(self, B = 0.5*10):
+    def SetMagneticField(self, B = 0.5):
         self.B = B
     def SetProperties(self, Px, Py, Pz, charge = 1):
         self.charge = charge
@@ -56,6 +56,6 @@ def createNparticlesPropGaussian(N_particles, x = 0, y = 0, z = 0):  # Create pa
         charge =  random.choice([+1,-1])
         part = ParticlePropagator(i,x,y,z)
         part.SetMagneticField()
-        part.SetProperties(random.gauss(0,1),random.gauss(0,1),random.gauss(0,1),charge)
+        part.SetProperties(random.gauss(0,4),random.gauss(0,4),random.gauss(0,4),charge)
         particles.append(part)
     return particles;
