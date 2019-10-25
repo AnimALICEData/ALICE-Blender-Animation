@@ -56,6 +56,6 @@ def createNparticlesPropGaussian(N_particles, x = 0, y = 0, z = 0):  # Create pa
         charge =  random.choice([+1,-1])
         part = ParticlePropagator(i,x,y,z)
         part.SetMagneticField()
-        part.SetProperties(random.gauss(0,4),random.gauss(0,4),random.gauss(0,4),charge)
+        part.SetProperties(random.gauss(0,3),random.gauss(0,3),random.gauss(0,3),charge)
         particles.append(part)
     return particles;

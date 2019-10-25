@@ -37,7 +37,7 @@ particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clM
 r_part = 0.05
 
 # Event Multiplicity
-n_particles = 1000
+n_particles = 500
 
 # Configure Environment
 bcs = bpy.context.scene
@@ -121,13 +121,19 @@ camera_forward.data.type = 'ORTHO'
 camera_forward.data.ortho_scale = 10
 
 
+# OverviewCamera
+bpy.ops.object.camera_add(location=(6.98591, -19.7115, 23.9696), rotation=(-0.281366, 0.683857, -1.65684))
+bpy.context.object.name = "OverviewCamera"
+bpy.context.object.data.lens = 66.78
 
+# Barrel Camera
 bpy.ops.object.camera_add(location=(6, 0, 0), rotation=(0, 1.5708, 0))
 #bpy.context.object.rotation_euler[1] = 1.5708
 bpy.context.object.name = "BarrelCamera"
 
+
 # Select scene camera
-bpy.context.scene.camera = bpy.data.objects["ForwardCamera"]
+bpy.context.scene.camera = bpy.data.objects["OverviewCamera"]
 
 # Create particles
 particles = createNparticlesPropGaussian(n_particles)
@@ -168,6 +174,6 @@ bpy.context.scene.frame_current = 20
 #bpy.ops.wm.save_as_mainfile(filepath="/home/pezzi/particles_"+str(n_particles)+".blend")
 
 # Render animation
-bpy.ops.render.render(animation=True)
+#bpy.ops.render.render(animation=True)
 
 #exit()
