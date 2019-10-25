@@ -5,7 +5,7 @@ import random
 
 # Basic particle class to store bascic information
 class Particle:
-    def __init__(self, index, x = 0, y = 0, z = 0, charge = 1, mass=1):
+    def __init__(self, index, x = 0, y = 0, z = 0, charge = 1, mass=0.94):
         self.iDx=index
         self.x=x
         self.y=y
@@ -28,26 +28,32 @@ def createNparticles(N_particles, x = 0, y = 0, z = 0):  # Create particles at g
 
 # Derived class to computes the time evolution particle positions
 class ParticlePropagator(Particle):
-    def SetMagneticField(self,B):
+    def SetMagneticField(self, B = 0.5):
         self.B = B
-    def SetMomentum(self,Px, Py, Pz):
-        self.Px = Px
-        self.Py = Py
-        self.Pz = Pz
-    def Propagate(self, time): # Todo: Add relativistic and magnetic field effects
-        Xprop = self.x + time*self.Px/self.mass
-        Yprop = self.y + time*self.Py/self.mass
-        Zprop = self.z + time*self.Pz/self.mass
+    def SetProperties(self, Px, Py, Pz):
+        self.Px = Px # unit: Gev/c
+        self.Py = Py # unit: Gev/c
+        self.Pz = Pz # unit: Gev/c
+        self.Velocity = 1/math.sqrt(1+self.mass*self.mass/(Px*Px+Py*Py+Pz*Pz)) # unit: []c
+        self.LorentzFactor = 1 / math.sqrt( 1 - self.Velocity * self.Velocity )
+        self.Vz = 300 * Pz / self.LorentzFactor / self.mass # unit: meters/micro seconds
+    def Propagate(self, time):
+        Rx = self.Px / (self.charge * self.B) * 3.335641 # unit conversion to meters
+        Ry = self.Py / (self.charge * self.B) * 3.335641 # unit conversion to meters
+        omega = self.charge * self.B / ( self.LorentzFactor * self.mass ) * 89.876 # Angular frequency (unit: radians/micro seconds)
+        Xprop = self.x + Rx * math.sin(omega*time) - Ry * ( math.cos(omega*time) - 1 )
+        Yprop = self.y + Ry * math.sin(omega*time) + Rx * ( math.cos(omega*time) - 1 )
+        Zprop = self.z + self.Vz * time
         return Xprop, Yprop, Zprop
 
 # Function that creates N particle propagators
 #   Momentum values to be obtained from real data
-def createNparticlesProp(N_particles, x = 0, y = 0, z = 0):  # Create particles at given position and return them in a list
+def createNparticlesPropGaussian(N_particles, x = 0, y = 0, z = 0):  # Create particles at given position and return them in a list
     particles=[]
     #loop over particles
     for i in range(0, N_particles):
         part = ParticlePropagator(i,x,y,z)
-        part.SetMagneticField(0.5)
-        part.SetMomentum(random.gauss(0,1),random.gauss(0,1),random.gauss(0,1))
+        part.SetMagneticField()
+        part.SetProperties(random.gauss(0,1),random.gauss(0,1),random.gauss(0,1))
         particles.append(part)
     return particles;
