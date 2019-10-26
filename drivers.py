@@ -10,7 +10,7 @@ exec(compile(open(filename).read(), filename, 'exec'))
 
 class animationDriver:
     def __init__(self,name):
-        self.name=name
+        self.name = name
     def configure(self, renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent=100):
         self.renderCamera=renderCamera
         self.duration=duration  # total video duration in seconds
@@ -50,19 +50,25 @@ class animationDriver:
         bcsr.filepath = "/tmp/blender/"+output_prefix
 
 class genDriver(animationDriver): # A driver for particle generators
-    def createParticles(self, N_particles, par1, x = 0, y = 0, z = 0):  # Create particles at given position and return them in a list
+    def __init__(self,name,N_particles, par1):
+        self.name = name+"_N"+str(n_particles)+"_"
+        self.N_particles = N_particles
+        self.par1 = par1
+    def getParticles(self, x = 0, y = 0, z = 0):  # Create particles at given position and return them in a list
         particles=[]
         #loop over particles
-        for i in range(0, N_particles):
+        for i in range(0, self.N_particles):
             charge =  random.choice([+1,-1])
             part = ParticlePropagator(i,x,y,z)
             part.SetMagneticField()
-            part.SetProperties(random.gauss(0,par1),random.gauss(0,par1),random.gauss(0,par1),charge)
+            part.SetProperties(random.gauss(0,self.par1),random.gauss(0,self.par1),random.gauss(0,self.par1),charge)
             particles.append(part)
         return particles;
 
 class dataDriver(animationDriver): # A driver for data from files. Under construction
-    def createParticles(self, filename):  # Create particles acording to parameters from file
+    def __init__(self,name,filename):
+        self.name = name+"_"+filename+"_"
+    def getParticles(self):  # Create particles acording to parameters from file
         # TODO: load data into vectors
         particles=[]
         x = y = z = 0;

@@ -31,13 +31,13 @@ renderAnimation = True # True
 saveBlenderFile = False # False
 
 # Create and configure animation driver
-n_particles = 500 # Event Multiplicity
-driver = genDriver("GaussianGenerator_N"+str(n_particles)+"_")
+n_particles = 100 # Event Multiplicity
+driver = genDriver("GaussianGenerator",n_particles,3.0) # Simple genDriver takes two parameters: number of particles and Gaussian width
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
 
 ### Build scene
 init() # Cleanup, addCameras, addALICE_TPC
-particles = driver.createParticles(n_particles,3.0) # Simple genDriver takes two parameters: number of particles and Gaussian width
+particles = driver.getParticles()
 blender_particles = createSceneParticles(particles) # Create blender objects - one sphere per particle
 
 #Animate scene using driver
