@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# particulas.py - Protótipo de animação de partículas
-# Para utilizar este script chame o blender com a opção -P e o nome do arquivo
+# animate_particles.py - Animate HEP events
 #
 #   For console only rendering:
 #   $ blender -noaudio --background -P animate_particles.py
@@ -8,54 +7,47 @@
 # TODO: - Implement command line arguments
 #         - https://blender.stackexchange.com/questions/6817/how-to-pass-command-line-arguments-to-a-blender-python-script
 
+import os
 import bpy
 bpy.context.user_preferences.view.show_splash = False
-bcs = bpy.context.scene
-bcsr = bcs.render
-import math
-import os
-import random
-# Import Particle class
-filename = os.path.join(os.path.basename(bpy.data.filepath), "particle.py")
+# Import Drivers, partiles and scence functions:
+filename = os.path.join(os.path.basename(bpy.data.filepath), "drivers.py")
 exec(compile(open(filename).read(), filename, 'exec'))
-# Import scene functions
-filename = os.path.join(os.path.basename(bpy.data.filepath), "scene_functions.py")
-exec(compile(open(filename).read(), filename, 'exec'))
-
 
 # Set animation parameters
-renderCamera = "ForwardCamera" # Set rendering Camera: "ForwardCamera" "OverviewCamera" "BarrelCamera"
-n_particles = 500 # Event Multiplicity
 r_part = 0.05 # Particle radius
-t_video=15 # total video duration in seconds
-t_simulado=0.015 # tempo simulado em microssegundos. 0.01 é o tempo para percorrer 3m na velocidade da luz
-fps = 24 # frames per second
-N_frames=t_video*fps # Total number of frames
-delta_t=t_simulado/N_frames # time elapsed per frame
-bcs.frame_start = 0
-bcs.frame_end = N_frames
-init()
+simulated_t = 0.015
+duration = 15
+fps = 24
+resolution_percent = 100
 
 #configure output
-fileIdentifier="_GaussianMomentum-PhysicalTrajectories_"
-configureOutput(fileIdentifier,resolution_percent=100)
-renderAnimation=False
+outputPath = "/tmp/blender/"
+fileIdentifier = "PhysicalTrajectories_"
+##  RenderCameras: ["ForwardCamera", "OverviewCamera", "BarrelCamera"]
+renderCamera="ForwardCamera"
 
-addCameras() # Add cameras
-addALICE_TPC() # ALICE TPC
-particles = createNparticlesPropGaussian(n_particles) # Create particles
-blender_particles = create(particles) # Create blender objects - one sphere per particle
-animate(blender_particles,particles)  #Animate Scene using particle propagator
+renderAnimation = True # True
+saveBlenderFile = False # False
+
+# Create and configure animation driver
+n_particles = 500 # Event Multiplicity
+driver = genDriver("GaussianGenerator_N"+str(n_particles)+"_")
+driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
+
+### Build scene
+init() # Cleanup, addCameras, addALICE_TPC
+particles = driver.createParticles(n_particles,3.0) # Simple genDriver takes two parameters: number of particles and Gaussian width
+blender_particles = createSceneParticles(particles) # Create blender objects - one sphere per particle
+
+#Animate scene using driver
+animate(blender_particles,particles,driver)
 bpy.context.scene.frame_current = 24
 
-## Todo:
-##  - Add option to keep particle trails
-
 ## Save blender file
-#bpy.ops.wm.save_as_mainfile(filepath="/home/pezzi/particles_"+str(n_particles)+".blend")
+if saveBlenderFile: bpy.ops.wm.save_as_mainfile(filepath=outputPath+fileIdentifier+".blend")
 
 # Render animation
-bpy.context.scene.camera = bpy.data.objects[renderCamera]
-bpy.ops.render.render(animation=renderAnimation)
+if renderAnimation: driver.render()
 
 #exit()

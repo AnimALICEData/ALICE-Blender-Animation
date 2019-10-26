@@ -17,14 +17,6 @@ class Particle:
     def GetPosition(self):
         return self.x, self.y, self.z
 
-#Function that creates N particles and return them in a list
-def createNparticles(N_particles, x = 0, y = 0, z = 0):  # Create particles at given position and return them in a list
-    particles=[]
-    #loop over particles
-    for i in range(0, N_particles):
-        part = Particle(i,x,y,z)
-        particles.append(part)
-    return particles;
 
 # Derived class to computes the time evolution particle positions
 class ParticlePropagator(Particle):
@@ -46,16 +38,3 @@ class ParticlePropagator(Particle):
         Yprop = self.y + Ry * math.sin(omega*time) + Rx * ( math.cos(omega*time) - 1 )
         Zprop = self.z + self.Vz * time
         return Xprop, Yprop, Zprop
-
-# Function that creates N particle propagators
-#   Momentum values to be obtained from real data
-def createNparticlesPropGaussian(N_particles, x = 0, y = 0, z = 0):  # Create particles at given position and return them in a list
-    particles=[]
-    #loop over particles
-    for i in range(0, N_particles):
-        charge =  random.choice([+1,-1])
-        part = ParticlePropagator(i,x,y,z)
-        part.SetMagneticField()
-        part.SetProperties(random.gauss(0,3),random.gauss(0,3),random.gauss(0,3),charge)
-        particles.append(part)
-    return particles;

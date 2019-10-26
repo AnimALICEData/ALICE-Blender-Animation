@@ -1,0 +1,76 @@
+# -*- coding: utf-8 -*-
+
+# Import Particle class
+filename = os.path.join(os.path.basename(bpy.data.filepath), "particle.py")
+exec(compile(open(filename).read(), filename, 'exec'))
+# Import scene functions
+filename = os.path.join(os.path.basename(bpy.data.filepath), "scene_functions.py")
+exec(compile(open(filename).read(), filename, 'exec'))
+
+
+class animationDriver:
+    def __init__(self,name):
+        self.name=name
+    def configure(self, renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent=100):
+        self.renderCamera=renderCamera
+        self.duration=duration  # total video duration in seconds
+        self.fps=fps
+        self.simulated_t=simulated_t # total simulated time in microseconds. (0.01 -> light travels ~ 3 m)
+        self.N_frames=duration*fps
+        self.delta_t=self.simulated_t/self.N_frames # time elapsed per frame
+        self.outputPath = outputPath
+        self.fileIdentifier = fileIdentifier
+        self.resolution_percent = resolution_percent
+        self.configureOutput()
+        bcs = bpy.context.scene
+        bcs.frame_start = 0
+        bcs.frame_end = self.N_frames
+
+    def render(self):
+        bpy.context.scene.camera = bpy.data.objects[self.renderCamera]
+        bpy.ops.render.render(animation=True)
+
+    def configureOutput(self):
+        # Configure Output
+        bcsr = bpy.context.scene.render
+        bcsr.fps=self.fps
+        bcsr.resolution_percentage = self.resolution_percent
+        bcsr.image_settings.file_format = 'FFMPEG'
+        bcsr.ffmpeg.format = "MPEG4"
+        bcsr.ffmpeg.codec = "H264"
+        bcsr.ffmpeg.use_max_b_frames = False
+        bcsr.ffmpeg.video_bitrate = 6000
+        bcsr.ffmpeg.maxrate = 9000
+        bcsr.ffmpeg.minrate = 0
+        bcsr.ffmpeg.buffersize = 224 * 8
+        bcsr.ffmpeg.packetsize = 2048
+        bcsr.ffmpeg.muxrate = 10080000
+        xpixels = int(bcsr.resolution_percentage * bcsr.resolution_x / 100)
+        output_prefix=fileIdentifier+str(xpixels)+"px_"+self.name
+        bcsr.filepath = "/tmp/blender/"+output_prefix
+
+class genDriver(animationDriver): # A driver for particle generators
+    def createParticles(self, N_particles, par1, x = 0, y = 0, z = 0):  # Create particles at given position and return them in a list
+        particles=[]
+        #loop over particles
+        for i in range(0, N_particles):
+            charge =  random.choice([+1,-1])
+            part = ParticlePropagator(i,x,y,z)
+            part.SetMagneticField()
+            part.SetProperties(random.gauss(0,par1),random.gauss(0,par1),random.gauss(0,par1),charge)
+            particles.append(part)
+        return particles;
+
+class dataDriver(animationDriver): # A driver for data from files. Under construction
+    def createParticles(self, filename):  # Create particles acording to parameters from file
+        # TODO: load data into vectors
+        particles=[]
+        x = y = z = 0;
+        #loop over particles
+        for i in range(0, N_particles):
+            charge =  random.choice([+1,-1])
+            part = ParticlePropagator(i,x,y,z)
+            part.SetMagneticField()
+            part.SetProperties(random.gauss(0,par1),random.gauss(0,par1),random.gauss(0,par1),charge)
+            particles.append(part)
+        return particles;
