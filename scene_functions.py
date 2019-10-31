@@ -72,6 +72,7 @@ def createSceneParticles(particles):
 
     # Create blender spheres (particles)
     blender_particles=[]
+    n_particles=len(particles)
     for particle in particles:
         this_type=random.choice(particle_types) #TO DO: make this not random, but according to file data
         print("Adding Sphere - Particle " + str(len(blender_particles))+" of "+str(n_particles-1)+" - "+this_type)
