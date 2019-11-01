@@ -66,30 +66,29 @@ class genDriver(animationDriver): # A driver for particle generators
         return particles;
 
 class dataDriver(animationDriver): # A driver for data from files.
-    def __init__(self,name,filename):
-        self.name = name+"_"+filename+"_"
+    def __init__(self,name,datafile):
+        self.name = name+"_"+datafile+"_"
+        self.datafile = datafile
     def getParticles(self):  # Create particles acording to parameters from file
         # Count number of lines in file = number of particles
-        detail_file = open(filename, 'r')
-        linecount = 0
-        for line in open(filename).readlines( ): linecount += 1 # File must be in the same directory
-        # Set number of particles
-        N_particles = linecount
-        particles=[]
+        detail_file = open(self.datafile, 'r')
         lines = detail_file.readlines()
+        N_particles = len(lines)
+        # Create particles list
+        particles=[]
         #loop over particles and get information from data file
         for i in range(0, N_particles):
-            x = lines[i].split()[0]
-            y = lines[i].split()[1]
-            z = lines[i].split()[2]
-            mass = lines[i].split()[3]
-            charge = lines[i].split()[4]
-            Px = lines[i].split()[5]
-            Py = lines[i].split()[6]
-            Pz = lines[i].split()[7]
-            part = ParticlePropagator(i,x,y,z,charge,mass)
-            part.SetMagneticField()
-            part.SetProperties(Px,Py,Pz)
+            x = lines[i].split(' ')[0]
+            y = lines[i].split(' ')[1]
+            z = lines[i].split(' ')[2]
+            mass = lines[i].split(' ')[3]
+            charge = lines[i].split(' ')[4]
+            Px = lines[i].split(' ')[5]
+            Py = lines[i].split(' ')[6]
+            Pz = lines[i].split(' ')[7]
+            part = ParticlePropagator(i,float(x),float(y),float(z),float(charge),float(mass))
+            part.SetMagneticField(0.5)
+            part.SetProperties(float(Px),float(Py),float(Pz))
             particles.append(part)
         detail_file.close()
         return particles;
