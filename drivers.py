@@ -72,21 +72,21 @@ class dataDriver(animationDriver): # A driver for data from files.
         # Count number of lines in file = number of particles
         detail_file = open(filename, 'r')
         linecount = 0
-        for line in open(filename).readlines(  ): linecount += 1 # File must be in the same directory
+        for line in open(filename).readlines( ): linecount += 1 # File must be in the same directory
         # Set number of particles
         N_particles = linecount
         particles=[]
         lines = detail_file.readlines()
         #loop over particles and get information from data file
         for i in range(0, N_particles):
-            x = lines[i].split(' ')[0]
-            y = lines[i].split(' ')[1]
-            z = lines[i].split(' ')[2]
-            mass = lines[i].split(' ')[3]
-            charge = lines[i].split(' ')[4]
-            Px = lines[i].split(' ')[5]
-            Py = lines[i].split(' ')[6]
-            Pz = lines[i].split(' ')[7]
+            x = lines[i].split()[0]
+            y = lines[i].split()[1]
+            z = lines[i].split()[2]
+            mass = lines[i].split()[3]
+            charge = lines[i].split()[4]
+            Px = lines[i].split()[5]
+            Py = lines[i].split()[6]
+            Pz = lines[i].split()[7]
             part = ParticlePropagator(i,x,y,z,charge,mass)
             part.SetMagneticField()
             part.SetProperties(Px,Py,Pz)
