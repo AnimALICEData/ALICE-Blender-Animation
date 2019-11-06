@@ -2,22 +2,28 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering:
-#   $ blender -noaudio --background -P animate_particles.py
+#   $ blender -noaudio --background -P animate_particles.py -- r_part(FLOAT) duration(INT) renderCamera(STRING)
 #
 # TODO: - Implement command line arguments
 #         - https://blender.stackexchange.com/questions/6817/how-to-pass-command-line-arguments-to-a-blender-python-script
 
 import os
 import bpy
+import sys # in order to pass command line arguments
+
+# Create array to store arguments from command line
+argv = sys.argv
+argv = argv[argv.index("--") + 1:]  # get all args after "--"
+
 bpy.context.user_preferences.view.show_splash = False
 # Import Drivers, partiles and scence functions:
 filename = os.path.join(os.path.basename(bpy.data.filepath), "drivers.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
 # Set animation parameters
-r_part = 0.05 # Particle radius
+r_part = float(argv[0]) # Particle radius
 simulated_t = 0.015
-duration = 15
+duration = int(argv[1])
 fps = 24
 resolution_percent = 100
 
@@ -25,7 +31,7 @@ resolution_percent = 100
 outputPath = "/tmp/blender/"
 fileIdentifier = "PhysicalTrajectories_"
 ##  RenderCameras: ["ForwardCamera", "OverviewCamera", "BarrelCamera"]
-renderCamera="ForwardCamera"
+renderCamera= str(argv[2]) # "ForwardCamera"
 
 renderAnimation = True # True
 saveBlenderFile = False # False
