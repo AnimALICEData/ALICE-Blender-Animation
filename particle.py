@@ -12,6 +12,12 @@ class Particle:
         self.z=z
         self.charge=charge
         self.mass = mass
+    def SetType(self):
+        p_mass = {"Electron":0.000510999, "Pion":0.13957, "Muon":0.105658, "Proton":0.938272, "Kaon":0.493677}
+        self.p_type = "Unknown"
+        for p_type in p_mass:
+            if p_mass[p_type] == self.mass:
+                self.p_type = p_type
     def PrintPosition(self):
         print(str(self.x) + " ; " + str(self.y) + " ; " + str(self.z))
     def GetPosition(self):

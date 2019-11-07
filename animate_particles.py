@@ -22,8 +22,8 @@ exec(compile(open(filename).read(), filename, 'exec'))
 
 # Set animation parameters
 r_part = float(argv[0]) # Particle radius
-simulated_t = 0.015
-duration = int(argv[1])
+simulated_t = 0.02 # in microsseconds
+duration = int(argv[1]) # in seconds
 fps = 24
 resolution_percent = 100
 

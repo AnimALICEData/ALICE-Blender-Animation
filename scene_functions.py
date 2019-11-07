@@ -54,13 +54,14 @@ def addCameras():
 ## Returns a list of blender objects
 def createSceneParticles(particles):
     # Associate particles and colors
-    particle_types = ["Electron","Pion","Muon","Proton","Kaon"]
+    particle_types = ["Electron","Pion","Muon","Proton","Kaon","Unknown"]
     clRed = (1, 0, 0)
     clGreen = (0, 1, 0)
     clBlue = (0, 0, 1)
     clMagenta = (0.75, 0, 1)
     clYellow = (1, 1, 0)
-    particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clMagenta, "Kaon": clYellow}
+    clWhite = (255, 255, 255)
+    particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clMagenta, "Kaon": clYellow, "Unknown": clWhite}
 
     #Create Materials
     for type in particle_types:
@@ -74,7 +75,7 @@ def createSceneParticles(particles):
     blender_particles=[]
     n_particles=len(particles)
     for particle in particles:
-        this_type=random.choice(particle_types) #TO DO: make this not random, but according to file data
+        this_type=particle.p_type
         print("Adding Sphere - Particle " + str(len(blender_particles))+" of "+str(n_particles-1)+" - "+this_type)
         bpy.ops.mesh.primitive_uv_sphere_add()
         this_particle = bpy.context.object

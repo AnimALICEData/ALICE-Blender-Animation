@@ -59,7 +59,9 @@ class genDriver(animationDriver): # A driver for particle generators
         #loop over particles
         for i in range(0, self.N_particles):
             charge =  random.choice([+1,-1])
-            part = ParticlePropagator(i,x,y,z,charge)
+            mass = random.choice([0.000510999, 0.13957, 0.105658, 0.938272, 0.493677]) # Available mass values
+            part = ParticlePropagator(i,x,y,z,charge,mass)
+            part.SetType()
             part.SetMagneticField()
             part.SetProperties(random.gauss(0,self.par1),random.gauss(0,self.par1),random.gauss(0,self.par1))
             particles.append(part)
@@ -87,6 +89,7 @@ class dataDriver(animationDriver): # A driver for data from files.
             Py = lines[i].split(' ')[6]
             Pz = lines[i].split(' ')[7]
             part = ParticlePropagator(i,float(x),float(y),float(z),float(charge),float(mass))
+            part.SetType()
             part.SetMagneticField(0.5)
             part.SetProperties(float(Px),float(Py),float(Pz))
             particles.append(part)
