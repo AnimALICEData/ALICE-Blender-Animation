@@ -6,13 +6,16 @@ Run animation example:
 
 In the example above, argument 'radius' has value 0.05, 'duration' has value 10 and so on.
 
--radius:
+*-radius*:
   particle radius; must be a number; type float
--duration:
+
+*-duration*:
   animation duration; must be a number; type int
--camera:
+
+*-camera*:
   defines animation view; must be a string; available options: OverviewCamera, BarrelCamera, ForwardCamera
--datafile:
+
+*-datafile*:
   filename for event data file; must be a string
 
 Implement command line arguments:
