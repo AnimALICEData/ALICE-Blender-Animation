@@ -1,19 +1,36 @@
 # -*- coding: utf-8 -*-
 # animate_particles.py - Animate HEP events
 #
-#   For console only rendering:
-#   $ blender -noaudio --background -P animate_particles.py -- r_part(FLOAT) duration(INT) renderCamera(STRING)
+#   For console only rendering (example):
+#   $ blender -noaudio --background -P animate_particles.py -- -radius 0.05 -duration 10 -camera OverviewCamera -datafile esd-detail.dat
 #
-# TODO: - Implement command line arguments
-#         - https://blender.stackexchange.com/questions/6817/how-to-pass-command-line-arguments-to-a-blender-python-script
 
 import os
 import bpy
-import sys # in order to pass command line arguments
 
-# Create array to store arguments from command line
-argv = sys.argv
-argv = argv[argv.index("--") + 1:]  # get all args after "--"
+import argparse
+import sys
+
+# Pass on command line arguments to script:
+class ArgumentParserForBlender(argparse.ArgumentParser):
+    def _get_argv_after_doubledash(self):
+        try:
+            idx = sys.argv.index("--")
+            return sys.argv[idx+1:] # the list after '--'
+        except ValueError as e: # '--' not in the list:
+            return []
+
+    # overrides superclass
+    def parse_args(self):
+        return super().parse_args(args=self._get_argv_after_doubledash())
+
+parser = ArgumentParserForBlender()
+
+parser.add_argument('-radius','--r_part')
+parser.add_argument('-duration','--duration')
+parser.add_argument('-camera','--render_camera')
+parser.add_argument('-datafile','--datafile')
+args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
 # Import Drivers, partiles and scence functions:
@@ -21,9 +38,9 @@ filename = os.path.join(os.path.basename(bpy.data.filepath), "drivers.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
 # Set animation parameters
-r_part = float(argv[0]) # Particle radius
+r_part = float(args.r_part) # Particle radius
 simulated_t = 0.02 # in microsseconds
-duration = int(argv[1]) # in seconds
+duration = int(args.duration) # in seconds
 fps = 24
 resolution_percent = 100
 
@@ -31,7 +48,7 @@ resolution_percent = 100
 outputPath = "/tmp/blender/"
 fileIdentifier = "PhysicalTrajectories_"
 ##  RenderCameras: ["ForwardCamera", "OverviewCamera", "BarrelCamera"]
-renderCamera= str(argv[2]) # "ForwardCamera"
+renderCamera= args.render_camera
 
 renderAnimation = True # True
 saveBlenderFile = False # False
@@ -44,7 +61,7 @@ driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdent
 """
 
 # Create and configure animation driver
-driver = dataDriver("AlirootFileGenerator","esd-detail.dat") # Simple dataDriver takes one parameters: filename
+driver = dataDriver("AlirootFileGenerator",args.datafile) # Simple dataDriver takes one parameters: filename
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
 
 ### Build scene
