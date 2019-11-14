@@ -52,7 +52,7 @@ def addCameras():
 
 # Function that creates Blender Objects from input list of particles.
 ## Returns a list of blender objects
-def createSceneParticles(particles):
+def createSceneParticles(particles, createTracks = False):
     # Associate particles and colors
     particle_types = ["Electron","Pion","Muon","Proton","Kaon"]
     clRed = (1, 0, 0)
@@ -84,7 +84,41 @@ def createSceneParticles(particles):
         this_particle.data.materials.clear()
         this_particle.data.materials.append(bpy.data.materials[this_type])
         blender_particles.append(this_particle)
-    return blender_particles
+
+    # Create blender curves (tracks)
+    blender_tracks=[]
+    if createTracks:
+            for track in particles:
+                this_type=random.choice(particle_types) #TO DO: make this not random, but according to file data
+                print("Adding Curve - Track " + str(len(blender_tracks))+" of "+str(n_particles-1)+" - "+this_type)
+
+                # create the Curve Datablock
+                curveTrack = bpy.data.curves.new('CurveTrack', type='CURVE')
+                curveTrack.dimensions = '3D'
+                curveTrack.resolution_u = 2
+
+                curveTrack.fill_mode = 'FULL'
+                curveTrack.bevel_depth = 0.02
+                curveTrack.bevel_resolution = 3
+
+
+                # map coords to spline
+                bcs = bpy.context.scene
+                polyline = curveTrack.splines.new('NURBS')
+                polyline.points.add(bcs.frame_end) # Add one point per frame
+                for i in range(bcs.frame_end):
+                    polyline.points[i].co = (particle.x,particle.y,particle.z, 1)
+
+                # create Object
+                trackOB = bpy.data.objects.new('Track', curveTrack)
+                trackOB.data.materials.clear()
+                trackOB.data.materials.append(bpy.data.materials[this_type])
+                scn = bpy.context.scene
+                scn.objects.link(trackOB)
+                blender_tracks.append(trackOB)
+
+
+    return blender_particles, blender_tracks
 
 # Function that animates the scene using the particle propagator class
 def animate(objects, particles, driver):
@@ -94,8 +128,39 @@ def animate(objects, particles, driver):
     for f in range(1, bcs.frame_end):
         t = driver.delta_t*f
         bcs.frame_current = f
-        print("Configuring Frame: "+str(f)+" of "+str(bcs.frame_end))
+        print("Configuring particles in frame: "+str(f)+" of "+str(bcs.frame_end))
         for i in range(0, len(objects)):
             bcs.objects.active=objects[i]
             objects[i].location=(particles[i].Propagate(t))
             objects[i].keyframe_insert(data_path='location')
+
+# Function that animates particle tracks using the particle propagator class
+def animate_tracks(tracks, particles, driver):
+    bcs = bpy.context.scene
+
+    #Animate tracks
+    for f in range(1, bcs.frame_end):
+        t = driver.delta_t*f
+        bcs.frame_current = f
+        print("Configuring tracks in frame: "+ str(f) +" of "+ str(bcs.frame_end))
+        for point in range(f,bcs.frame_end):
+            for i in range(0, len(particles)):
+                #bcs.objects.active=tracks[i]
+                tracks[i].data.splines[0].points[point].keyframe_insert(data_path="co", frame = f)
+                x, y, z = particles[i].Propagate(t)
+                tracks[i].data.splines[0].points[point].co = (x, y, z, 1)
+
+
+
+                ##polyline = curveTrack.splines.new('NURBS')
+                ##polyline.points.add(len(coords))
+                ##for i, coord in enumerate(coords):
+                ##    x,y,z = coord
+                ##    polyline.points[i].co = (x, y, z, 1)
+
+                #curve = bpy.data.objects["Track"]
+                #curve.data.splines[0].points[1].co
+
+
+                #point.keyframe_insert(data_path="co", frame = i)
+                # https://blender.stackexchange.com/questions/73630/animate-curves-by-changing-spline-data-using-a-python-script
