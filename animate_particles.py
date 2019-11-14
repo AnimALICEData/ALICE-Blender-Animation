@@ -50,7 +50,7 @@ fileIdentifier = "PhysicalTrajectories_"
 ##  RenderCameras: ["ForwardCamera", "OverviewCamera", "BarrelCamera"]
 renderCamera= args.render_camera
 
-renderAnimation = True # True
+renderAnimation = False #True # True
 saveBlenderFile = False # False
 
 """
@@ -67,10 +67,12 @@ driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdent
 ### Build scene
 init() # Cleanup, addCameras, addALICE_TPC
 particles = driver.getParticles()
-blender_particles = createSceneParticles(particles) # Create blender objects - one sphere per particle
+blender_particles, blender_tracks = createSceneParticles(particles,createTracks = True) # Create blender objects - one sphere per particle
 
 #Animate scene using driver
 animate(blender_particles,particles,driver)
+animate_tracks(blender_tracks,particles,driver)
+
 bpy.context.scene.frame_current = 24
 
 ## Save blender file
