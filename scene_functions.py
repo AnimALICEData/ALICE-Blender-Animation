@@ -90,7 +90,7 @@ def createSceneParticles(particles, createTracks = False):
     blender_tracks=[]
     if createTracks:
             for track in particles:
-                this_type=random.choice(particle_types) #TO DO: make this not random, but according to file data
+                this_type=track.p_type #TO DO: make this not random, but according to file data
                 print("Adding Curve - Track " + str(len(blender_tracks))+" of "+str(n_particles-1)+" - "+this_type)
 
                 # create the Curve Datablock

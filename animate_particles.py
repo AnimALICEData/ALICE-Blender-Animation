@@ -2,7 +2,7 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius 0.05 -duration 10 -camera OverviewCamera -datafile esd-detail.dat
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat"
 #
 
 import os
@@ -50,20 +50,20 @@ fileIdentifier = "PhysicalTrajectories_"
 ##  RenderCameras: ["ForwardCamera", "OverviewCamera", "BarrelCamera"]
 renderCamera= args.render_camera
 
-renderAnimation = False #True # True
+renderAnimation = True # True
 saveBlenderFile = False # False
 
-"""
+
 # Create and configure animation driver
 n_particles = 100 # Event Multiplicity
 driver = genDriver("GaussianGenerator",n_particles,3.0) # Simple genDriver takes two parameters: number of particles and Gaussian width
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
-"""
 
+"""
 # Create and configure animation driver
 driver = dataDriver("AlirootFileGenerator",args.datafile) # Simple dataDriver takes one parameters: filename
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
-
+"""
 ### Build scene
 init() # Cleanup, addCameras, addALICE_TPC
 particles = driver.getParticles()
