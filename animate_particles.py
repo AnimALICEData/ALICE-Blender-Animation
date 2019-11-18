@@ -2,7 +2,7 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat"
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100
 #
 
 import os
@@ -30,6 +30,9 @@ parser.add_argument('-radius','--r_part')
 parser.add_argument('-duration','--duration')
 parser.add_argument('-camera','--render_camera')
 parser.add_argument('-datafile','--datafile')
+parser.add_argument('-simulated_t','--simulated_t')
+parser.add_argument('-fps','--fps')
+parser.add_argument('-resolution','--resolution_percent')
 args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
@@ -39,10 +42,10 @@ exec(compile(open(filename).read(), filename, 'exec'))
 
 # Set animation parameters
 r_part = float(args.r_part) # Particle radius
-simulated_t = 0.02 # in microsseconds
+simulated_t = float(args.simulated_t) # in microsseconds
 duration = int(args.duration) # in seconds
-fps = 24
-resolution_percent = 100
+fps = int(args.fps)
+resolution_percent = int(args.resolution_percent)
 
 #configure output
 outputPath = "/tmp/blender/"
