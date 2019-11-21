@@ -1,5 +1,11 @@
 # ALICE Open Data Blender animation
 
+## Requirements
+
+* Blender 2.79b
+
+## Run
+
 Run animation example:
 `blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100`
 
