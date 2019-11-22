@@ -2,7 +2,7 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100 -stamp_note="Texto no canto"
 #
 
 import os
@@ -33,6 +33,7 @@ parser.add_argument('-datafile','--datafile')
 parser.add_argument('-simulated_t','--simulated_t')
 parser.add_argument('-fps','--fps')
 parser.add_argument('-resolution','--resolution_percent')
+parser.add_argument('-stamp_note','--stamp_note')
 args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
@@ -56,19 +57,19 @@ renderCamera= args.render_camera
 renderAnimation = True # True
 saveBlenderFile = False # False
 
-
+"""
 # Create and configure animation driver
 n_particles = 100 # Event Multiplicity
 driver = genDriver("GaussianGenerator",n_particles,3.0) # Simple genDriver takes two parameters: number of particles and Gaussian width
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
-
 """
+
 # Create and configure animation driver
 driver = dataDriver("AlirootFileGenerator",args.datafile) # Simple dataDriver takes one parameters: filename
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
-"""
+
 ### Build scene
-init() # Cleanup, addCameras, addALICE_TPC
+init(args.stamp_note) # Cleanup, addCameras, addALICE_TPC
 particles = driver.getParticles()
 blender_particles, blender_tracks = createSceneParticles(particles,createTracks = True) # Create blender objects - one sphere per particle
 

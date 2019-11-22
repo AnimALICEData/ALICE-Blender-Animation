@@ -1,10 +1,22 @@
 
-def init():
+def init(unique_id):
     bcs = bpy.context.scene
 
     # Configure Environment
     bcs.world.light_settings.use_environment_light = False
     bcs.world.light_settings.environment_energy = 0.1
+
+    # Configure Stamp
+    bpy.context.scene.render.use_stamp = True
+    bpy.context.scene.render.use_stamp_time = False
+    bpy.context.scene.render.use_stamp_date = False
+    bpy.context.scene.render.use_stamp_render_time = False
+    bpy.context.scene.render.use_stamp_frame = False
+    bpy.context.scene.render.use_stamp_scene = False
+    bpy.context.scene.render.use_stamp_camera = False
+    bpy.context.scene.render.use_stamp_filename = False
+    bpy.context.scene.render.stamp_note_text = unique_id
+    bpy.context.scene.render.use_stamp_note = True
 
     # Cleanup
     bpy.data.objects.remove(bpy.data.objects['Cube'])
