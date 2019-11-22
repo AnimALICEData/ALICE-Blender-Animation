@@ -59,24 +59,39 @@ class genDriver(animationDriver): # A driver for particle generators
         #loop over particles
         for i in range(0, self.N_particles):
             charge =  random.choice([+1,-1])
-            part = ParticlePropagator(i,x,y,z)
+            mass = random.choice([0.000510999, 0.13957, 0.105658, 0.938272, 0.493677]) # Available mass values
+            part = ParticlePropagator(i,x,y,z,charge,mass)
+            part.SetType()
             part.SetMagneticField()
-            part.SetProperties(random.gauss(0,self.par1),random.gauss(0,self.par1),random.gauss(0,self.par1),charge)
+            part.SetProperties(random.gauss(0,self.par1),random.gauss(0,self.par1),random.gauss(0,self.par1))
             particles.append(part)
         return particles;
 
-class dataDriver(animationDriver): # A driver for data from files. Under construction
-    def __init__(self,name,filename):
-        self.name = name+"_"+filename+"_"
+class dataDriver(animationDriver): # A driver for data from files.
+    def __init__(self,name,datafile):
+        self.name = name+"_"+datafile+"_"
+        self.datafile = datafile
     def getParticles(self):  # Create particles acording to parameters from file
-        # TODO: load data into vectors
+        # Count number of lines in file = number of particles
+        detail_file = open(self.datafile, 'r')
+        lines = detail_file.readlines()
+        N_particles = len(lines)
+        # Create particles list
         particles=[]
-        x = y = z = 0;
-        #loop over particles
+        #loop over particles and get information from data file
         for i in range(0, N_particles):
-            charge =  random.choice([+1,-1])
-            part = ParticlePropagator(i,x,y,z)
-            part.SetMagneticField()
-            part.SetProperties(random.gauss(0,par1),random.gauss(0,par1),random.gauss(0,par1),charge)
+            x = lines[i].split(' ')[0]
+            y = lines[i].split(' ')[1]
+            z = lines[i].split(' ')[2]
+            mass = lines[i].split(' ')[3]
+            charge = lines[i].split(' ')[4]
+            Px = lines[i].split(' ')[5]
+            Py = lines[i].split(' ')[6]
+            Pz = lines[i].split(' ')[7]
+            part = ParticlePropagator(i,float(x),float(y),float(z),float(charge),float(mass))
+            part.SetType()
+            part.SetMagneticField(0.5)
+            part.SetProperties(float(Px),float(Py),float(Pz))
             particles.append(part)
+        detail_file.close()
         return particles;
