@@ -90,6 +90,7 @@ def createSceneParticles(particles, createTracks = False):
         this_type=particle.p_type
         print("Adding Sphere - Particle " + str(len(blender_particles))+" of "+str(n_particles-1)+" - "+this_type)
         bpy.ops.mesh.primitive_uv_sphere_add()
+        bpy.ops.object.shade_smooth()
         this_particle = bpy.context.object
         this_particle.name = "part"+str(particle.iDx)
         this_particle.location = ((particle.x,particle.y,particle.z))
