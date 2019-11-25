@@ -4,15 +4,12 @@ void runAnalysis()
     ofstream s_detail, m_detail, l_detail;
 
     s_detail.open ("s-esd-detail.dat");
-    s_detail << " " << endl;
     s_detail.close();
 
     m_detail.open ("m-esd-detail.dat");
-    m_detail << " " << endl;
     m_detail.close();
 
     l_detail.open ("l-esd-detail.dat");
-    l_detail << " " << endl;
     l_detail.close();
 
     // since we will compile a class, tell root where to look for headers
