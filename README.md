@@ -12,7 +12,6 @@ Before starting, you must also clone this repository:
 ```bash
 mkdir -p ~/alice
 cd ~/alice
-git init
 git clone https://git.cta.if.ufrgs.br/ALICE-open-data/alice-blender-animation.git
 ```
 
