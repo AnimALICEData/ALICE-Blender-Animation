@@ -54,22 +54,16 @@ aliBuild build AliPhysics --defaults user -z aliroot5
 ```bash
 alienv enter AliPhysics/latest-aliroot5-user
 ```
-6) Run the macro
+6) Run the macro with number of ESD event as an input
 
 ```bash
 cd ~/alice/alice-blender-animation/aliRoot
-aliroot runAnalysis.C
+aliroot -q -b "runAnalysis.C(7)"
 ```
+Number seven is just an example. An empty input will do the analysis on event number 0.
 
-With the last step, ESD analysis results will be saved on three text files:
 
-- `s-esd-detail.dat`, for an event with a 'small' number of tracks (between 15 and 30 tracks);
-
-- `m-esd-detail.dat`, for an event with a 'medium' number of tracks (between 100 and 300 tracks);
-
-- `l-esd-detail.dat`, for an event with a 'very large' number of tracks (between 5000 and 50000 tracks).
-
-You must then move those three files into the 'animate' folder, where the Blender scripts are.
+With the last step, ESD analysis results will be saved on a text file called `esd-detail.dat`. You must then move this file into the 'animate' folder, where the Blender scripts are.
 
 
 ## Step 3 - Generating animation
@@ -83,7 +77,7 @@ cd ~/alice/alice-blender-animation/animate
 Run the python script `animate_particles.py` as in the example below:
 
 ```bash
-blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=10 -camera="BarrelCamera" -datafile="s-esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100
+blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=10 -camera="OverviewCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100
 ```
 
 where everything that follows the double dashes are input arguments for generating the animation. Here is what each argument means:
@@ -105,7 +99,7 @@ defines animation point of view; must be a string; available options: "OverviewC
 
 -datafile:
 
-filename for event data file; must be a string; must be one of your text files: "s-esd-detail.dat", "m-esd-detail.dat", "l-esd-detail.dat"
+filename for event data file; must be a string; must the name your text file: "esd-detail.dat"
 
 
 -simulated_t:

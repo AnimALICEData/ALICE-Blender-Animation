@@ -120,10 +120,15 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
 
     Int_t Event=0;
     Int_t TrigEvent=0;
-    ofstream s_detail, m_detail, l_detail;
-    s_detail.open ("s-esd-detail.dat",std::ofstream::app);
-    m_detail.open ("m-esd-detail.dat",std::ofstream::app);
-    l_detail.open ("l-esd-detail.dat",std::ofstream::app);
+    Int_t selectedEventID;
+
+    ifstream s_event;
+    s_event.open ("s-event.dat",std::ifstream::in);
+    s_event >> selectedEventID;
+    s_event.close();
+
+    ofstream esd_detail;
+    esd_detail.open ("esd-detail.dat",std::ofstream::app);
 
 
     fESD = dynamic_cast<AliESDEvent*>(InputEvent());    // get an event (called fESD) from the input file
@@ -149,66 +154,34 @@ Assumed Units: Mass (GeV/c^2)[CONFIRMED] || Energy (GeV) || Momentum (GeV/c) || 
 
 */
 
-    if(smallEventID == esd_event_id) {
-	     if(iTracks >= 15 && iTracks <= 30) {smallEventID = -1;}
-	     else {smallEventID++;}
-    } else {smallEventID = -2;}
+    if(selectedEventID == esd_event_id) { // when we get to the selected event, fill histograms and write data
 
-    if(mediumEventID == esd_event_id) {
-	     if(iTracks >= 100 && iTracks <= 300) {mediumEventID = -1;}
-	     else {mediumEventID++;}
-    } else {mediumEventID = -2;}
+      for(Int_t i(0); i < iTracks; i++) {                 // loop over all these tracks
 
-    if(largeEventID == esd_event_id) {
-	     if(iTracks >= 5000 && iTracks <= 50000) {largeEventID = -1;}
-	     else {largeEventID++;}
-    } else {largeEventID = -2;}
+        		AliESDtrack* track = static_cast<AliESDtrack*>(fESD->GetTrack(i));         // get a track (type AliESDtrack) from the event
 
-    for(Int_t i(0); i < iTracks; i++) {                 // loop over all these tracks
+        		if(!track) continue;                            // if we failed, skip this track
 
-	      if(smallEventID == -1 || mediumEventID == -1 || largeEventID == -1) { // when we get to the selected event, fill histograms and write data
+        		Double_t Mass = track->M(); // returns the pion mass, if the particle can't be identified properly
+        		Double_t Energy = track->E(); // Returns the energy of the particle given its assumed mass, but assumes the pion mass if the particle can't be identified properly.
 
-      		AliESDtrack* track = static_cast<AliESDtrack*>(fESD->GetTrack(i));         // get a track (type AliESDtrack) from the event
+        		Double_t Px = track->Px();
+        		Double_t Py = track->Py();
+        		Double_t Pt = track->Pt(); // transversal momentum, in case we need it
+        		Double_t Pz = track->Pz();
 
-      		if(!track) continue;                            // if we failed, skip this track
+        		Double_t Charge = track->Charge();
 
-      		Double_t Mass = track->M(); // returns the pion mass, if the particle can't be identified properly
-      		Double_t Energy = track->E(); // Returns the energy of the particle given its assumed mass, but assumes the pion mass if the particle can't be identified properly.
+          	// Add VERTEX (x, y, z), MASS, CHARGE and MOMENTUM (x, y, z) to esd-detail.dat file
+          	esd_detail << Vx << " " << Vy << " " << Vz << " ";
+          	esd_detail << Mass << " " << Charge << " ";
+          	esd_detail << Px << " " << Py << " " << Pz << endl;
 
-      		Double_t Px = track->Px();
-      		Double_t Py = track->Py();
-      		Double_t Pt = track->Pt(); // transversal momentum, in case we need it
-      		Double_t Pz = track->Pz();
+          	fHistPt->Fill(Pt);                     // plot the pt value of the track in a histogram
 
-      		Double_t Charge = track->Charge();
+          	fHistMass->Fill(Mass);
 
-          if (smallEventID == -1) {
-        		// Add VERTEX (x, y, z), MASS, CHARGE and MOMENTUM (x, y, z) to esd-detail.dat file
-        		s_detail << Vx << " " << Vy << " " << Vz << " ";
-        		s_detail << Mass << " " << Charge << " ";
-        		s_detail << Px << " " << Py << " " << Pz << endl;
-          }
-
-          if (mediumEventID == -1) {
-        		// Add VERTEX (x, y, z), MASS, CHARGE and MOMENTUM (x, y, z) to esd-detail.dat file
-        		m_detail << Vx << " " << Vy << " " << Vz << " ";
-        		m_detail << Mass << " " << Charge << " ";
-        		m_detail << Px << " " << Py << " " << Pz << endl;
-          }
-
-          if (largeEventID == -1) {
-        		// Add VERTEX (x, y, z), MASS, CHARGE and MOMENTUM (x, y, z) to esd-detail.dat file
-        		l_detail << Vx << " " << Vy << " " << Vz << " ";
-        		l_detail << Mass << " " << Charge << " ";
-        		l_detail << Px << " " << Py << " " << Pz << endl;
-
-
-        		fHistPt->Fill(Pt);                     // plot the pt value of the track in a histogram
-
-        		fHistMass->Fill(Mass);
-          }
-
-      }
+        }
 
     }
 
@@ -216,9 +189,7 @@ Assumed Units: Mass (GeV/c^2)[CONFIRMED] || Energy (GeV) || Momentum (GeV/c) || 
     Event++;
     esd_event_id++; // Increment global esd_event_id
     fHistEvents->Fill(Event);
-    s_detail.close();
-    m_detail.close();
-    l_detail.close();
+    esd_detail.close();
 
                                                        // continue until all the tracks are processed
     PostData(1, fOutputList);                           // stream the results the analysis of this event to

@@ -1,16 +1,22 @@
-void runAnalysis()
+// Run:
+//
+// $ aliroot -q -b "runAnalysis.C(selected-event)"
+//
+// 'selected-event' is the desired event number inside the ESD file
+// Leaving it blank will select event 0
+//
+
+int runAnalysis(int selected_event=0)
 {
     // Erase output txt files
-    ofstream s_detail, m_detail, l_detail;
+    ofstream esd_detail, s_event;
 
-    s_detail.open ("s-esd-detail.dat");
-    s_detail.close();
+    s_event.open ("s-event.dat");
+    s_event << selected_event;
+    s_event.close();
 
-    m_detail.open ("m-esd-detail.dat");
-    m_detail.close();
-
-    l_detail.open ("l-esd-detail.dat");
-    l_detail.close();
+    esd_detail.open ("esd-detail.dat");
+    esd_detail.close();
 
     // since we will compile a class, tell root where to look for headers
     gROOT->ProcessLine(".include $ROOTSYS/include");
@@ -46,6 +52,7 @@ void runAnalysis()
     // start the analysis locally, reading the events from the tchain
     mgr->StartAnalysis("local", chain);
 
+    remove("s-event.dat");
 
     exit();
 }
