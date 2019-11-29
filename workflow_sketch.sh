@@ -22,9 +22,11 @@ export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
 ##############################
 function usage()
 {
-    echo "$0 <URL> <DOWNLOAD>";
+    echo "$0 <URL> <DOWNLOAD> <DEFAULT_ANIMATION>(optional)";
     echo "  where <URL> is a URL to uniquely identify a dataset";
     echo "  where <DOWNLOAD> is true or false, indicate whether the dataset should be downloaded";
+    echo "  where <DEFAULT_ANIMATION> is true or false, indicate whether the default animation should be generated";
+    echo "  leaving <DEFAULT_ANIMATION> blank will generate custom animation from data file";
 }
 
 ##############################
@@ -44,6 +46,20 @@ if [ -z $DOWNLOAD ]; then
     exit
 fi
 
+DEFAULT_ANIMATION=$3
+if [ "$DEFAULT_ANIMATION" = "true" ]; then
+    echo "Preparing default animation."
+    ##############################
+    # Phase 1: blender animate   #
+    ##############################
+    pushd ${BLENDER_SCRIPT_DIR}
+    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="BarrelCamera" -datafile="d-esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
+    popd
+    mkdir --verbose -p ${BLENDER_OUTPUT}
+    mv --verbose /tmp/blender ${BLENDER_OUTPUT}
+    echo "Done."
+fi
+
 ##############################
 # Download Dataset           #
 ##############################
@@ -51,31 +67,32 @@ if [ "$DOWNLOAD" = "true" ]; then
     echo "Downloading data."
     wget $URL
 fi
-# Verify if AliESDs.root is here
-ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
 
-##############################
-# Phase 1: aliroot extract   #
-##############################
-eval $(alienv -w ${ALIENV_WORK_DIR} -a ubuntu1604_x86-64 load ${ALIENV_ID})
-pushd ${ALIROOT_SCRIPT_DIR}
-rm --verbose AliESDs.root
-ln --verbose -s $ALIESD_ROOT_FILE AliESDs.root
-aliroot runAnalysis.C
-for type in s m l; do
-    ls -lh ${type}-esd-detail.dat
-done
-popd
+if [ -z $DEFAULT_ANIMATION ]; then
+  # Verify if AliESDs.root is here
+  # #ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
+  mv --verbose $(pwd)/AliESDs.root ${ALIROOT_SCRIPT_DIR}
 
-##############################
-# Phase 2: blender animate   #
-##############################
-for type in s m l; do
-  mv --verbose ${ALIROOT_SCRIPT_DIR}/${type}-esd-detail.dat ${BLENDER_SCRIPT_DIR}
-done
-pushd ${BLENDER_SCRIPT_DIR}
-blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=10 -camera="BarrelCamera" -datafile="d-esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100
-popd
-mkdir --verbose -p ${BLENDER_OUTPUT}
-mv --verbose /tmp/blender ${BLENDER_OUTPUT}
-echo "Done."
+  ##############################
+  # Phase 1: aliroot extract   #
+  ##############################
+  eval $(alienv -w /home/tropos/alice/sw -a ubuntu1804_x86-64 load ${ALIENV_ID}) #-w ${ALIENV_WORK_DIR} -a ubuntu1604_x86-64 load ${ALIENV_ID})
+  pushd ${ALIROOT_SCRIPT_DIR}
+  # #rm --verbose AliESDs.root
+  # #ln --verbose -s $ALIESD_ROOT_FILE AliESDs.root
+  aliroot -q -b "runAnalysis.C(2)"
+  ls -lh esd-detail.dat
+  #done
+  popd
+
+  ##############################
+  # Phase 2: blender animate   #
+  ##############################
+  mv --verbose ${ALIROOT_SCRIPT_DIR}/esd-detail.dat ${BLENDER_SCRIPT_DIR}
+  pushd ${BLENDER_SCRIPT_DIR}
+  blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="BarrelCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
+  popd
+  mkdir --verbose -p ${BLENDER_OUTPUT}
+  mv --verbose /tmp/blender ${BLENDER_OUTPUT}
+  echo "Done."
+fi
