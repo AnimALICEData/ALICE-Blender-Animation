@@ -22,7 +22,7 @@ export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
 ##############################
 function usage()
 {
-    echo "$0 <URL> <DOWNLOAD> <DEFAULT_ANIMATION>(optional)";
+    echo "$0 <URL> <DOWNLOAD> [DEFAULT_ANIMATION]";
     echo "  where <URL> is a URL to uniquely identify a dataset";
     echo "  where <DOWNLOAD> is true or false, indicate whether the dataset should be downloaded";
     echo "  where <DEFAULT_ANIMATION> is true or false, indicate whether the default animation should be generated";
