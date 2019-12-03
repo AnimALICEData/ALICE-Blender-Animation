@@ -34,9 +34,6 @@
 
 
 Int_t esd_event_id = 0; // global variable to store unique event id
-Int_t smallEventID = 0; // is equal to esd-event-id until the selected event (one with an appropriate number of tracks) is reached
-Int_t mediumEventID = 0; // for events with ~200 tracks
-Int_t largeEventID = 0; // for events with many many tracks
 
 class AliAnalysisTaskMyTask;    // your analysis class
 
@@ -127,69 +124,82 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
     s_event >> selectedEventID;
     s_event.close();
 
-    ofstream esd_detail;
-    esd_detail.open ("esd-detail.dat",std::ofstream::app);
+    if(selectedEventID == -1) {
+
+      ofstream events_number;
+      events_number.open ("events_number.dat",std::ofstream::out);
+
+      events_number << esd_event_id+1;
+
+      events_number.close();
+
+    } else {
+
+      ofstream esd_detail;
+      esd_detail.open ("esd-detail.dat",std::ofstream::app);
 
 
-    fESD = dynamic_cast<AliESDEvent*>(InputEvent());    // get an event (called fESD) from the input file
+      fESD = dynamic_cast<AliESDEvent*>(InputEvent());    // get an event (called fESD) from the input file
 
-                                                        // there's another event format (ESD) which works in a similar way
-
-
-    if(!fESD) return;                                   // if the pointer to the event is empty (getting it failed) skip this event
-        // example part: i'll show how to loop over the tracks in an event
-        // and extract some information from them which we'll store in a histogram
-
-    Int_t iTracks(fESD->GetNumberOfTracks());           // see how many tracks there are in the event
-
-    Double_t Vx = 0.01 * fESD->GetPrimaryVertex()->GetX();	// gets vertexes from individual events, in METERS
-    Double_t Vy = 0.01 * fESD->GetPrimaryVertex()->GetY();
-    Double_t Vz = 0.01 * fESD->GetPrimaryVertex()->GetZ();
-    Double_t MagneticField = 0.1 * fESD->GetMagneticField();	// gets magnetic field, in TESLA
+                                                          // there's another event format (ESD) which works in a similar way
 
 
-/*
+      if(!fESD) return;                                   // if the pointer to the event is empty (getting it failed) skip this event
+          // example part: i'll show how to loop over the tracks in an event
+          // and extract some information from them which we'll store in a histogram
 
-Assumed Units: Mass (GeV/c^2)[CONFIRMED] || Energy (GeV) || Momentum (GeV/c) || Charge (* 1.6*10^-19 C)
+      Int_t iTracks(fESD->GetNumberOfTracks());           // see how many tracks there are in the event
 
-*/
+      Double_t Vx = 0.01 * fESD->GetPrimaryVertex()->GetX();	// gets vertexes from individual events, in METERS
+      Double_t Vy = 0.01 * fESD->GetPrimaryVertex()->GetY();
+      Double_t Vz = 0.01 * fESD->GetPrimaryVertex()->GetZ();
+      Double_t MagneticField = 0.1 * fESD->GetMagneticField();	// gets magnetic field, in TESLA
 
-    if(selectedEventID == esd_event_id) { // when we get to the selected event, fill histograms and write data
 
-      for(Int_t i(0); i < iTracks; i++) {                 // loop over all these tracks
+  /*
 
-        		AliESDtrack* track = static_cast<AliESDtrack*>(fESD->GetTrack(i));         // get a track (type AliESDtrack) from the event
+  Assumed Units: Mass (GeV/c^2)[CONFIRMED] || Energy (GeV) || Momentum (GeV/c) || Charge (* 1.6*10^-19 C)
 
-        		if(!track) continue;                            // if we failed, skip this track
+  */
 
-        		Double_t Mass = track->M(); // returns the pion mass, if the particle can't be identified properly
-        		Double_t Energy = track->E(); // Returns the energy of the particle given its assumed mass, but assumes the pion mass if the particle can't be identified properly.
+      if(selectedEventID == esd_event_id) { // when we get to the selected event, fill histograms and write data
 
-        		Double_t Px = track->Px();
-        		Double_t Py = track->Py();
-        		Double_t Pt = track->Pt(); // transversal momentum, in case we need it
-        		Double_t Pz = track->Pz();
+        for(Int_t i(0); i < iTracks; i++) {                 // loop over all these tracks
 
-        		Double_t Charge = track->Charge();
+          		AliESDtrack* track = static_cast<AliESDtrack*>(fESD->GetTrack(i));         // get a track (type AliESDtrack) from the event
 
-          	// Add VERTEX (x, y, z), MASS, CHARGE and MOMENTUM (x, y, z) to esd-detail.dat file
-          	esd_detail << Vx << " " << Vy << " " << Vz << " ";
-          	esd_detail << Mass << " " << Charge << " ";
-          	esd_detail << Px << " " << Py << " " << Pz << endl;
+          		if(!track) continue;                            // if we failed, skip this track
 
-          	fHistPt->Fill(Pt);                     // plot the pt value of the track in a histogram
+          		Double_t Mass = track->M(); // returns the pion mass, if the particle can't be identified properly
+          		Double_t Energy = track->E(); // Returns the energy of the particle given its assumed mass, but assumes the pion mass if the particle can't be identified properly.
 
-          	fHistMass->Fill(Mass);
+          		Double_t Px = track->Px();
+          		Double_t Py = track->Py();
+          		Double_t Pt = track->Pt(); // transversal momentum, in case we need it
+          		Double_t Pz = track->Pz();
 
-        }
+          		Double_t Charge = track->Charge();
+
+            	// Add VERTEX (x, y, z), MASS, CHARGE and MOMENTUM (x, y, z) to esd-detail.dat file
+            	esd_detail << Vx << " " << Vy << " " << Vz << " ";
+            	esd_detail << Mass << " " << Charge << " ";
+            	esd_detail << Px << " " << Py << " " << Pz << endl;
+
+            	fHistPt->Fill(Pt);                     // plot the pt value of the track in a histogram
+
+            	fHistMass->Fill(Mass);
+
+          }
+
+      }
+
+      esd_detail.close();
 
     }
-
 
     Event++;
     esd_event_id++; // Increment global esd_event_id
     fHistEvents->Fill(Event);
-    esd_detail.close();
 
                                                        // continue until all the tracks are processed
     PostData(1, fOutputList);                           // stream the results the analysis of this event to

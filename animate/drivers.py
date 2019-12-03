@@ -46,7 +46,7 @@ class animationDriver:
         bcsr.ffmpeg.packetsize = 2048
         bcsr.ffmpeg.muxrate = 10080000
         xpixels = int(bcsr.resolution_percentage * bcsr.resolution_x / 100)
-        output_prefix=fileIdentifier+str(xpixels)+"px_"+self.name
+        output_prefix=fileIdentifier+str(xpixels)+"px_"+self.name+self.renderCamera
         bcsr.filepath = "/tmp/blender/"+output_prefix
 
 class genDriver(animationDriver): # A driver for particle generators
@@ -68,8 +68,8 @@ class genDriver(animationDriver): # A driver for particle generators
         return particles;
 
 class dataDriver(animationDriver): # A driver for data from files.
-    def __init__(self,name,datafile):
-        self.name = name+"_"+datafile+"_"
+    def __init__(self,name,nEvent,datafile):
+        self.name = name+"_"+datafile+"_Event_"+nEvent+"_"
         self.datafile = datafile
     def getParticles(self):  # Create particles acording to parameters from file
         # Count number of lines in file = number of particles

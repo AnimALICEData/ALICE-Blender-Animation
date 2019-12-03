@@ -12,7 +12,7 @@ export BLENDER_SCRIPT_DIR=$(pwd)/animate/
 # Directory where output animations should be placed
 export BLENDER_OUTPUT=$(pwd)/output/
 # alienv working directory
-export ALIENV_WORK_DIR=/mnt/SSD/schnorr/ALICE/sw/
+export ALIENV_WORK_DIR=/home/tropos/alice/sw
 export ALIENV_ID=AliPhysics/latest-aliroot5-user
 # Put blender 2.79b in the PATH env var
 export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
@@ -71,6 +71,7 @@ fi
 if [ -z $DEFAULT_ANIMATION ]; then
   # Verify if AliESDs.root is here
   # #ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
+  mkdir --verbose -p ${BLENDER_OUTPUT}
   mv --verbose $(pwd)/AliESDs.root ${ALIROOT_SCRIPT_DIR}
 
   ##############################
@@ -80,19 +81,37 @@ if [ -z $DEFAULT_ANIMATION ]; then
   pushd ${ALIROOT_SCRIPT_DIR}
   # #rm --verbose AliESDs.root
   # #ln --verbose -s $ALIESD_ROOT_FILE AliESDs.root
-  aliroot -q -b "runAnalysis.C(2)"
-  ls -lh esd-detail.dat
-  #done
+  aliroot -q -b "runAnalysis.C(-1)"
+  ls -lh events_number.dat
+  n_events=`more events_number.dat`
+  for ((i=0; i<n_events; i++))
+    do
+      aliroot -q -b "runAnalysis.C($i)"
+
+      # Phase 2: Blender animate
+      mv --verbose ${ALIROOT_SCRIPT_DIR}/esd-detail.dat ${BLENDER_SCRIPT_DIR}
+      pushd ${BLENDER_SCRIPT_DIR}
+      for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
+        blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="esd-detail.dat" -n_event=$i -simulated_t=0.02 -fps=5 -resolution=50 -stamp_note="Texto no canto"
+        echo "${type} for event $i done."
+      done
+      popd
+      #mkdir --verbose -p ${BLENDER_OUTPUT}
+      #mv --verbose /tmp/blender ${BLENDER_OUTPUT}
+      echo "EVENT $i DONE."
+
+    done
   popd
 
+  mv --verbose /tmp/blender ${BLENDER_OUTPUT}
   ##############################
   # Phase 2: blender animate   #
   ##############################
-  mv --verbose ${ALIROOT_SCRIPT_DIR}/esd-detail.dat ${BLENDER_SCRIPT_DIR}
-  pushd ${BLENDER_SCRIPT_DIR}
-  blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="BarrelCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
-  popd
-  mkdir --verbose -p ${BLENDER_OUTPUT}
-  mv --verbose /tmp/blender ${BLENDER_OUTPUT}
-  echo "Done."
+#  mv --verbose ${ALIROOT_SCRIPT_DIR}/esd-detail.dat ${BLENDER_SCRIPT_DIR}
+#  pushd ${BLENDER_SCRIPT_DIR}
+#  blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="BarrelCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
+#  popd
+#  mkdir --verbose -p ${BLENDER_OUTPUT}
+#  mv --verbose /tmp/blender ${BLENDER_OUTPUT}
+#  echo "Done."
 fi
