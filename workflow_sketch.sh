@@ -46,6 +46,9 @@ if [ -z $DOWNLOAD ]; then
     exit
 fi
 
+##############################
+# Default animation          #
+##############################
 DEFAULT_ANIMATION=$3
 if [ "$DEFAULT_ANIMATION" = "true" ]; then
     echo "Preparing default animation."
@@ -68,10 +71,23 @@ if [ "$DOWNLOAD" = "true" ]; then
     wget $URL
 fi
 
-if [ -z $DEFAULT_ANIMATION ]; then
+##############################
+# Animation from file        #
+##############################
+if [ -z $DEFAULT_ANIMATION -o "$DEFAULT_ANIMATION" = "false" ]; then
+
   # Verify if AliESDs.root is here
-  # #ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
+  ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
+  if ! [[ -f "$ALIESD_ROOT_FILE" ]]
+  then
+  	echo "AliESDs.root not found."
+    exit
+  fi
+
+  # Create directory where animations will be saved
   mkdir --verbose -p ${BLENDER_OUTPUT}
+
+  # Move ESD file to aliRoot directory
   mv --verbose $(pwd)/AliESDs.root ${ALIROOT_SCRIPT_DIR}
 
   ##############################
@@ -79,16 +95,29 @@ if [ -z $DEFAULT_ANIMATION ]; then
   ##############################
   eval $(alienv -w /home/tropos/alice/sw -a ubuntu1804_x86-64 load ${ALIENV_ID}) #-w ${ALIENV_WORK_DIR} -a ubuntu1604_x86-64 load ${ALIENV_ID})
   pushd ${ALIROOT_SCRIPT_DIR}
-  # #rm --verbose AliESDs.root
-  # #ln --verbose -s $ALIESD_ROOT_FILE AliESDs.root
   aliroot -q -b "runAnalysis.C(-1)"
+
   ls -lh events_number.dat
-  n_events=`more events_number.dat`
+  n_events=`more events_number.dat` # stores number of events in ESD file
+  if ! [[ "$n_events" =~ ^[0-9]+$ ]] # verifies whether n_events is an integer
+      then
+          echo "Failed to extract number of events from file."
+  				exit
+  fi
+
   for ((i=0; i<n_events; i++))
     do
-      aliroot -q -b "runAnalysis.C($i)"
 
-      # Phase 2: Blender animate
+      aliroot -q -b "runAnalysis.C($i)"
+      ESD_DETAIL=${ALIROOT_SCRIPT_DIR}/esd-detail.dat
+      if ! [[ -f "$ESD_DETAIL" ]]
+      then
+        echo "ERROR: aliRoot analysis on event $i went wrong."
+      fi
+
+      ##############################
+      # Phase 2: blender animate   #
+      ##############################
       mv --verbose ${ALIROOT_SCRIPT_DIR}/esd-detail.dat ${BLENDER_SCRIPT_DIR}
       pushd ${BLENDER_SCRIPT_DIR}
       for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
@@ -96,22 +125,12 @@ if [ -z $DEFAULT_ANIMATION ]; then
         echo "${type} for event $i done."
       done
       popd
-      #mkdir --verbose -p ${BLENDER_OUTPUT}
-      #mv --verbose /tmp/blender ${BLENDER_OUTPUT}
       echo "EVENT $i DONE."
 
     done
   popd
 
+  # Move animation directory to local folder
   mv --verbose /tmp/blender ${BLENDER_OUTPUT}
-  ##############################
-  # Phase 2: blender animate   #
-  ##############################
-#  mv --verbose ${ALIROOT_SCRIPT_DIR}/esd-detail.dat ${BLENDER_SCRIPT_DIR}
-#  pushd ${BLENDER_SCRIPT_DIR}
-#  blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="BarrelCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
-#  popd
-#  mkdir --verbose -p ${BLENDER_OUTPUT}
-#  mv --verbose /tmp/blender ${BLENDER_OUTPUT}
-#  echo "Done."
+
 fi
