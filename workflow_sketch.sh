@@ -46,10 +46,22 @@ if [ -z $DOWNLOAD ]; then
     exit
 fi
 
+DEFAULT_ANIMATION=$3
+if [ -z $DEFAULT_ANIMATION ]; then
+    DEFAULT_ANIMATION="false"
+fi
+
+##############################
+# Download Dataset           #
+##############################
+if [ "$DOWNLOAD" = "true" ]; then
+    echo "Downloading data."
+    wget $URL
+fi
+
 ##############################
 # Default animation          #
 ##############################
-DEFAULT_ANIMATION=$3
 if [ "$DEFAULT_ANIMATION" = "true" ]; then
     echo "Preparing default animation."
     ##############################
@@ -64,17 +76,9 @@ if [ "$DEFAULT_ANIMATION" = "true" ]; then
 fi
 
 ##############################
-# Download Dataset           #
-##############################
-if [ "$DOWNLOAD" = "true" ]; then
-    echo "Downloading data."
-    wget $URL
-fi
-
-##############################
 # Animation from file        #
 ##############################
-if [ -z $DEFAULT_ANIMATION -o "$DEFAULT_ANIMATION" = "false" ]; then
+if [ "$DEFAULT_ANIMATION" = "false" ]; then
 
   # Verify if AliESDs.root is here
   ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
