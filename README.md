@@ -2,9 +2,9 @@
 
 ## Project Description
 
-This project has the purpose of generating a 3D animation of an ALICE particle collision event, inside the LHC, using data obtained from CERN's Open Data Portal, which makes ESDs - Event Summary Data files, that contain information about such events - open and available for analysis.
+This project has the purpose of generating 3D animations of ALICE particle collision events, inside the LHC, using data obtained from CERN's Open Data Portal, which makes ESDs - Event Summary Data files, that contain information about such events - open and available for analysis.
 
-ESD files regarding the ALICE experiment can be found on http://opendata.cern.ch/search?page=1&size=20&experiment=ALICE, and they should be processed using the Aliroot software, as indicated in the 'Aliroot' section below.
+ESD files regarding the ALICE experiment can be found on http://opendata.cern.ch/search?page=1&size=20&experiment=ALICE, and they should be somehow referenced along the process, as explained further.
 
 The software that makes the animation is Blender, which is free and open source. Blender's 2.79b version should be downloaded for this project, and can be found on https://www.blender.org/download/releases/2-79/
 
@@ -17,19 +17,13 @@ git clone https://git.cta.if.ufrgs.br/ALICE-open-data/alice-blender-animation.gi
 
 The animation making can be summarized in three basic steps:
 
-1) Downloading an ESD file;
-2) Installing aliRoot and running macros;
-3) Run bash to generate Blender animation using the ESD processing results.
+1) Installing aliRoot;
+2) Getting an ESD file;
+3) Run script to process ESD data and generate Blender animations using its results.
 
 In case you are not conCERNed about the data being used for the animation and only wish to generate a standard one, skip to the Default Animation section below. For detailed steps on how to make the animation from ESDs, as described above, read the following sections.
 
-## Step 1 - Downloading ESD files
-
-ESD files regarding the ALICE experiment can be found on http://opendata.cern.ch/search?page=1&size=20&experiment=ALICE. If you have doubts on which file to pick for a test, you can select any file on this list: http://opendata.cern.ch/record/1102.
-
-You must save your ESD file inside the 'aliRoot' directory, which is obtained by cloning this repository as mentioned above.
-
-## Step 2 - Installing aliRoot
+## Step 1 - Installing aliRoot
 
 Here is the sequence of steps for installing aliRoot, so you are able to process the relevant information for the project.
 
@@ -50,82 +44,42 @@ $ aliDoctor AliPhysics
 ```bash
 aliBuild build AliPhysics --defaults user -z aliroot5
 ```
-5) Enter AliPhysics environment
-```bash
-alienv enter AliPhysics/latest-aliroot5-user
-```
-6) Run the macro with number of ESD event as an input
 
-```bash
-cd ~/alice/alice-blender-animation/aliRoot
-aliroot -q -b "runAnalysis.C(7)"
-```
-Number seven is just an example. An empty input will do the analysis on event number 0.
+## Step 2 - Getting an ESD file
 
+ESD files regarding the ALICE experiment can be found on http://opendata.cern.ch/search?page=1&size=20&experiment=ALICE. If you have doubts on which file to pick for a test, you can select any file on this list: http://opendata.cern.ch/record/1102.
 
-With the last step, ESD analysis results will be saved on a text file called `esd-detail.dat`. You must then move this file into the 'animate' folder, where the Blender scripts are.
+Here, there are two options from which you can choose:
 
+- the first one is to download your ESD file and save it in the `alice-blender-animation` directory, which was cloned from the git repository. Make sure you save it on the same path as this `README.md` file and the `workflow_sketch.sh` script, not inside the "aliRoot" or "animate" directories. Also make sure the file is named `AliESDs.root`.
+
+- the second one is to copy the URL for the ESD file (the address you would click to download it) and paste it on the command line when you run the script that generates the animation, according to the next section.
 
 ## Step 3 - Generating animation
 
-Go inside the 'animate' directory:
+Once you are all set, run the `workflow_sketch.sh` script through your terminal in the following way:
 
 ```bash
-cd ~/alice/alice-blender-animation/animate
+./workflow_sketch.sh <DOWNLOAD> <URL>
 ```
 
-Run the python script `animate_particles.py` as in the example below:
+where <DOWNLOAD> is either "true" of "false", depending on whether you wish to download the ESD file or just go with the one you have already downloaded.
 
-```bash
-blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=10 -camera="OverviewCamera" -datafile="esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100
-```
+If you type in "true", fill in the <URL> field with your ESD's URL, copied in the previous section. The code will then automatically download and run the analysis on the file.
 
-where everything that follows the double dashes are input arguments for generating the animation. Here is what each argument means:
+If you type in "false" - in which case you should have downloaded the ESD file yourself - just leave the <URL> field blank.
 
--radius:
+Have in mind that it will take a long time to generate all the animations.
 
-particle radius; must be a number; type float
-
-
--duration:
-
-animation duration, in seconds; must be a number; type int
-
-
--camera:
-
-defines animation point of view; must be a string; available options: "OverviewCamera", "BarrelCamera", "ForwardCamera"
-
-
--datafile:
-
-filename for event data file; must be a string; must the name your text file: "esd-detail.dat"
-
-
--simulated_t:
-
-simulated time of event, in microsseconds; must be a number; type float
-
-
--fps:
-
-frames per second; must be a number; type int
-
-
--resolution:
-
-animation resolution percent; must be a number; type int
-
-
-After running the script, your Blender animation should be ready! It will be saved in format .mp4 on the address `/tmp/blender`. Enjoy!
+After running the script, your Blender animations should be ready! For each event inside the ESD file, there will be three animations saved in .mp4 format, each one corresponding to a different view of the event. They will be available inside the `output` directory. Enjoy!
 
 
 # Default Animation
 
-For generating a default animation, simply run the animation python code inside the 'animate' folder, using the `d-esd-detail.dat` file (where 'd' is for 'default') as the input file, as showed below:
+For generating a default animation, simply run the script `workflow_sketch.sh` in your terminal as below:
 
 ```bash
-cd ~/alice/alice-blender-animation/animate
-blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=10 -camera="BarrelCamera" -datafile="d-esd-detail.dat" -simulated_t=0.02 -fps=24 -resolution=100
+./workflow_sketch.sh 0 0 true
 ```
-After running the script, your Blender animation should be ready! It will be saved in format .mp4 on the address `/tmp/blender`. Enjoy!
+
+After this, a single default animation should be ready. It will be available inside the `output` directory, in mp4 format. Enjoy!

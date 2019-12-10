@@ -22,7 +22,7 @@ export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
 ##############################
 function usage()
 {
-    echo "$0 <URL> <DOWNLOAD> [DEFAULT_ANIMATION]";
+    echo "$0 <DOWNLOAD> <URL> [DEFAULT_ANIMATION]";
     echo "  where <URL> is a URL to uniquely identify a dataset";
     echo "  where <DOWNLOAD> is true or false, indicate whether the dataset should be downloaded";
     echo "  where <DEFAULT_ANIMATION> is optional, either true or false, to indicate if the default animation should be generated";
@@ -32,19 +32,14 @@ function usage()
 ##############################
 # Parse Parameters           #
 ##############################
-URL=$1
-if [ -z $URL ]; then
-    echo "Error. Must pass the dataset URL."
-    usage
-    exit
-fi
-
-DOWNLOAD=$2
+DOWNLOAD=$1
 if [ -z $DOWNLOAD ]; then
     echo "Error. Must explicitely inform whether to download the dataset or not."
     usage
     exit
 fi
+
+URL=$2
 
 DEFAULT_ANIMATION=$3
 if [ -z $DEFAULT_ANIMATION ]; then
@@ -55,6 +50,11 @@ fi
 # Download Dataset           #
 ##############################
 if [ "$DOWNLOAD" = "true" ]; then
+    if [ -z $URL ]; then
+        echo "Error. Must pass the dataset URL."
+        usage
+        exit
+    fi
     echo "Downloading data."
     wget $URL
 fi
@@ -68,7 +68,7 @@ if [ "$DEFAULT_ANIMATION" = "true" ]; then
     # Phase 1: blender animate   #
     ##############################
     pushd ${BLENDER_SCRIPT_DIR}
-    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="BarrelCamera" -datafile="d-esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
+    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="OverviewCamera" -datafile="d-esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
     popd
     mkdir --verbose -p ${BLENDER_OUTPUT}
     mv --verbose /tmp/blender ${BLENDER_OUTPUT}
