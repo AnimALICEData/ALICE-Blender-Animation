@@ -84,8 +84,8 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
   if ! [[ -f "$ALIESD_ROOT_FILE" ]]
   then
-  	echo "AliESDs.root not found."
-    exit
+      echo "AliESDs.root not found."
+      exit
   fi
 
   # Create directory where animations will be saved
