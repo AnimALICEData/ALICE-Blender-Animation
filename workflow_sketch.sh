@@ -146,6 +146,8 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       ###############################################
       # Phase 1: aliroot extract data from an event #
       ###############################################
+      FILE_WITH_DATA="esd_detail-event_${EVENT_ID}.dat"
+
       aliroot -q -b "runAnalysis.C(${EVENT_ID})"
       if ! [[ -f "$FILE_WITH_DATA" ]]
       then
