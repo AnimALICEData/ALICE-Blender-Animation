@@ -130,7 +130,12 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
 			 -e "s#\.dat##")
       EVENT_UNIQUE_ID=${UNIQUEID}_${EVENT_ID}
 
-      continue
+      if ! [[ -s $FILE_WITH_DATA ]]; then
+	  echo "File $FILE_WITH_DATA has zero size. Ignore and continue."
+	  continue
+      else
+	  echo "Processing ${EVENT_UNIQUE_ID} in blender"
+      fi
 
       ##############################
       # Phase 2: blender animate   #
