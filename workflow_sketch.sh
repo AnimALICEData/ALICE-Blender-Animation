@@ -12,7 +12,7 @@ export BLENDER_SCRIPT_DIR=$(pwd)/animate/
 # Directory where output animations should be placed
 export BLENDER_OUTPUT=$(pwd)/output/
 # alienv working directory
-export ALIENV_WORK_DIR=/home/tropos/alice/sw
+export ALIENV_WORK_DIR=/mnt/SSD/schnorr/ALICE/sw/
 export ALIENV_OS_SPEC=ubuntu1604_x86-64
 export ALIENV_ID=AliPhysics/latest-aliroot5-user
 # Put blender 2.79b in the PATH env var
@@ -103,9 +103,9 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       exit
   fi
 
-  #############################################
-  # Phase 1: aliroot extract number of events #
-  #############################################
+  ############################
+  # Phase 1: aliroot extract #
+  ############################
   eval $(alienv -w ${ALIENV_WORK_DIR} -a ${ALIENV_OS_SPEC} load ${ALIENV_ID})
   pushd ${ALIROOT_SCRIPT_DIR}
   # Remove existing symbolic link
@@ -113,57 +113,24 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   # Create a symbolic link to the actual AliESDs.root
   ln --verbose -s ${ALIESD_ROOT_FILE} AliESDs.root
   # Run the extraction tool
-  aliroot -q -b "runAnalysis.C(-1)"
-
-  #############################################
-  # Phase 1: check number of events           #
-  #############################################
-  # Check if events_number.dat file exists
-  FILE_WITH_NUMBER_OF_EVENTS=events_number.dat
-  FILE_WITH_DATA=esd-detail.dat
-  if ! [[ -e ${FILE_WITH_NUMBER_OF_EVENTS} ]]; then
-      echo "File $FILE_WITH_NUMBER_OF_EVENTS does not exist. Abort."
-      exit
-  fi
-
-  n_events=$(cat ${FILE_WITH_NUMBER_OF_EVENTS}) # stores number of events in ESD file
-  if ! [[ "$n_events" =~ ^[0-9]+$ ]]; then # verifies whether n_events is an integer
-      echo "Failed to extract number of events from file."
-      exit
-  else
-      echo "The number of events in the file is ${n_events}."
-  fi
-  # Erase output txt files
-  rm -f ${FILE_WITH_NUMBER_OF_EVENTS}
-  rm -f ${FILE_WITH_DATA}
-
-  FIRST_EVENT=0
-  LAST_EVENT=$(echo "${n_events}-1" | bc)
-  echo "Event identifiers are sequential from ${FIRST_EVENT} to ${LAST_EVENT}."
-
-  # Create directory where animations will be saved
-  mkdir --verbose -p ${BLENDER_OUTPUT}
+  aliroot -q -b "runAnalysis.C"
 
   #################################################
   # Phase 1: iteration for every event identifier #
   #################################################
-  for EVENT_ID in $(seq ${FIRST_EVENT} ${LAST_EVENT}); do
-      echo $EVENT_ID
 
-      ###############################################
-      # Phase 1: aliroot extract data from an event #
-      ###############################################
-      FILE_WITH_DATA="esd_detail-event_${EVENT_ID}.dat"
+  # Create directory where animations will be saved
+  mkdir --verbose -p ${BLENDER_OUTPUT}
 
-      aliroot -q -b "runAnalysis.C(${EVENT_ID})"
-      if ! [[ -f "$FILE_WITH_DATA" ]]
-      then
-          echo "WARNING: aliRoot extraction for event ${EVENT_ID} went wrong."
-	  echo "We are ignoring this and proceed to next event."
-	  continue
-      else
-	  echo "Extracted $FILE_WITH_DATA contains $(wc -l $FILE_WITH_DATA) lines."
-      fi
+  # Get all extracted files
+  EXTRACTED_FILES=$(ls -1 esd_detail-event_*.dat | sort --version-sort)
+  for FILE_WITH_DATA in $EXTRACTED_FILES; do
+      EVENT_ID=$(echo $FILE_WITH_DATA | \
+		     sed -e "s#esd_detail-event_##" \
+			 -e "s#\.dat##")
+      EVENT_UNIQUE_ID=${UNIQUEID}_${EVENT_ID}
+
+      continue
 
       ##############################
       # Phase 2: blender animate   #
@@ -181,6 +148,6 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   popd
 
   # Move animation directory to local folder
-  mv --verbose /tmp/blender ${BLENDER_OUTPUT}
+  #mv --verbose /tmp/blender ${BLENDER_OUTPUT}
 
 fi
