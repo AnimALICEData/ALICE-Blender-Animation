@@ -112,8 +112,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       echo "The number of events in the file is ${n_events}."
   fi
 
-  for ((i=0; i<n_events; i++))
-    do
+  for ((i=0; i<n_events; i++)); do
 
       aliroot -q -b "runAnalysis.C($i)"
       ESD_DETAIL=${ALIROOT_SCRIPT_DIR}/esd-detail.dat
