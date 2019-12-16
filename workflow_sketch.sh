@@ -60,7 +60,7 @@ if [ "$DOWNLOAD" = "true" ]; then
 fi
 
 ##############################
-# Default animation          #
+# Default synthetic animation#
 ##############################
 if [ "$DEFAULT_ANIMATION" = "true" ]; then
     echo "Preparing default animation."
