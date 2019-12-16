@@ -158,6 +158,6 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   popd
 
   # Move animation directory to local folder
-  #mv --verbose /tmp/blender ${BLENDER_OUTPUT}
+  mv --verbose /tmp/blender ${BLENDER_OUTPUT}
 
 fi
