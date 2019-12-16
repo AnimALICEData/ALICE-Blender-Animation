@@ -63,6 +63,8 @@ if [ "$DOWNLOAD" = "true" ]; then
     wget $URL
 fi
 
+SCRIPT_CURRENT_DIR=$(pwd)
+
 ######################################
 # Established Unique ID based on URL #
 ######################################
@@ -119,8 +121,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   #################################################
 
   # Create directory where animations will be saved
-  BLENDER_OUTPUT=$UNIQUEID
-  rm -rf ${BLENDER_OUTPUT}
+  BLENDER_OUTPUT=$(pwd)/$UNIQUEID
   mkdir --verbose -p ${BLENDER_OUTPUT}
 
   # Get all extracted files
@@ -150,15 +151,20 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
           echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in blender"
           blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="${FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.01 -fps=5 -resolution=50 -stamp_note="${EVENT_UNIQUE_ID}"
+          # Move generated file to final location
+          mv /tmp/blender/* ${BLENDER_OUTPUT}
           echo "${type} for event ${EVENT_ID} done."
       done
+
+      # Move processed file to final location
+      mv $FILE_WITH_DATA ${BLENDER_OUTPUT}
+
       popd
       echo "EVENT ${EVENT_ID} DONE."
 
   done
   popd
 
-  # Move animation directory to local folder
-  mv --verbose /tmp/blender ${BLENDER_OUTPUT}
-
+  # Move to where this script is executed
+  mv ${BLENDER_OUTPUT} ${SCRIPT_CURRENT_DIR}
 fi
