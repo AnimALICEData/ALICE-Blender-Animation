@@ -65,6 +65,16 @@ if [ "$DOWNLOAD" = "true" ]; then
     wget $URL
 fi
 
+######################################
+# Established Unique ID based on URL #
+######################################
+UNIQUEID=$(echo $URL | sed \
+			   -e "s#http://opendata.cern.ch/##" \
+			   -e "s#/AliESDs.root##" \
+			   -e "s#files/assets/##" \
+			   -e "s#/#_#g")
+echo "The unique ID is $UNIQUEID."
+
 ##############################
 # Default synthetic animation#
 ##############################
