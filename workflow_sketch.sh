@@ -177,7 +177,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       popd
       echo "EVENT ${EVENT_ID} DONE."
 
-    done
+  done
   popd
 
   # Move animation directory to local folder
