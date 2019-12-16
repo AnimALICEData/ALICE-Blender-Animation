@@ -63,8 +63,6 @@ if [ "$DOWNLOAD" = "true" ]; then
     wget $URL
 fi
 
-SCRIPT_CURRENT_DIR=$(pwd)
-
 ######################################
 # Established Unique ID based on URL #
 ######################################
@@ -164,7 +162,4 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
 
   done
   popd
-
-  # Move to where this script is executed
-  mv ${BLENDER_OUTPUT} ${SCRIPT_CURRENT_DIR}
 fi
