@@ -45,8 +45,7 @@ int runAnalysis(int selected_event=0)
     // if you want to run locally, we need to define some input
     TChain* chain = new TChain("esdTree");
     // add a few files to the chain (change this so that your local files are added)
-    chain->Add("AliESDs.root"); // Breno put it on the same directory that was cloned from Pezzi's 					// repository: AliESD_Example
-
+    chain->Add("AliESDs.root");
     // start the analysis locally, reading the events from the tchain
     mgr->StartAnalysis("local", chain);
 
