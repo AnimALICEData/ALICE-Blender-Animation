@@ -142,11 +142,16 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   #################################################
   for EVENT_ID in "$(seq ${FIRST_EVENT} ${LAST_EVENT})"; do
       echo $EVENT_ID
+
+      ###############################################
+      # Phase 1: aliroot extract data from an event #
+      ###############################################
       aliroot -q -b "runAnalysis.C(${EVENT_ID})"
-      ESD_DETAIL=${ALIROOT_SCRIPT_DIR}/esd-detail.dat
-      if ! [[ -f "$ESD_DETAIL" ]]
+      if ! [[ -f "$FILE_WITH_DATA" ]]
       then
-        echo "ERROR: aliRoot analysis on event ${EVENT_ID} went wrong."
+          echo "WARNING: aliRoot extraction for event ${EVENT_ID} went wrong."
+	  echo "We are ignoring this and proceed to next event."
+	  continue
       fi
 
       ##############################
