@@ -96,9 +96,9 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   # Create directory where animations will be saved
   mkdir --verbose -p ${BLENDER_OUTPUT}
 
-  ##############################
-  # Phase 1: aliroot extract   #
-  ##############################
+  #############################################
+  # Phase 1: aliroot extract number of events #
+  #############################################
   eval $(alienv -w ${ALIENV_WORK_DIR} -a ${ALIENV_OS_SPEC} load ${ALIENV_ID})
   pushd ${ALIROOT_SCRIPT_DIR}
   # Remove existing symbolic link
@@ -108,6 +108,9 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   # Run the extraction tool
   aliroot -q -b "runAnalysis.C(-1)"
 
+  #############################################
+  # Phase 1: check number of events           #
+  #############################################
   # Check if events_number.dat file exists
   FILE_WITH_NUMBER_OF_EVENTS=events_number.dat
   FILE_WITH_DATA=esd-detail.dat
