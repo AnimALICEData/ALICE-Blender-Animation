@@ -103,9 +103,6 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       exit
   fi
 
-  # Create directory where animations will be saved
-  mkdir --verbose -p ${BLENDER_OUTPUT}
-
   #############################################
   # Phase 1: aliroot extract number of events #
   #############################################
@@ -143,6 +140,9 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   FIRST_EVENT=0
   LAST_EVENT=$(echo "${n_events}-1" | bc)
   echo "Event identifiers are sequential from ${FIRST_EVENT} to ${LAST_EVENT}."
+
+  # Create directory where animations will be saved
+  mkdir --verbose -p ${BLENDER_OUTPUT}
 
   #################################################
   # Phase 1: iteration for every event identifier #
