@@ -28,6 +28,11 @@ function usage()
     echo "  where <DOWNLOAD> is true or false, indicate whether the dataset should be downloaded";
     echo "  where <DEFAULT_ANIMATION> is optional, either true or false, to indicate if the default animation should be generated";
     echo "  leaving <DEFAULT_ANIMATION> blank will generate custom animation from data file";
+    echo
+    echo
+    echo "Usage example:"
+    echo "./$0 true http://opendata.cern.ch/record/1103/files/assets/alice/2010/LHC10h/000139173/ESD/0004/AliESDs.root false"
+    echo
 }
 
 ##############################
