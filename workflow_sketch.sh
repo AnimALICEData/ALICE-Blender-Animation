@@ -137,6 +137,9 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   exit
 
 
+  #################################################
+  # Phase 1: iteration for every event identifier #
+  #################################################
   for EVENT_ID in "$(seq ${FIRST_EVENT} ${LAST_EVENT})"; do
       echo $EVENT_ID
       aliroot -q -b "runAnalysis.C(${EVENT_ID})"
