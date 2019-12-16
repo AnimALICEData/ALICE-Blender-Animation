@@ -103,8 +103,14 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   # Run the extraction tool
   aliroot -q -b "runAnalysis.C(-1)"
 
-  ls -lh events_number.dat
-  n_events=$(cat events_number.dat) # stores number of events in ESD file
+  # Check if events_number.dat file exists
+  FILE_WITH_NUMBER_OF_EVENTS=events_number.dat
+  if ! [[ -e ${FILE_WITH_NUMBER_OF_EVENTS} ]]; then
+      echo "File $FILE_WITH_NUMBER_OF_EVENTS does not exist. Abort."
+      exit
+  fi
+
+  n_events=$(cat ${FILE_WITH_NUMBER_OF_EVENTS}) # stores number of events in ESD file
   if ! [[ "$n_events" =~ ^[0-9]+$ ]]; then # verifies whether n_events is an integer
       echo "Failed to extract number of events from file."
       exit
