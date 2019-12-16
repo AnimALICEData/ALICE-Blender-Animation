@@ -136,13 +136,14 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   
   exit
 
-  for ((i=0; i<n_events; i++)); do
 
-      aliroot -q -b "runAnalysis.C($i)"
+  for EVENT_ID in "$(seq ${FIRST_EVENT} ${LAST_EVENT})"; do
+      echo $EVENT_ID
+      aliroot -q -b "runAnalysis.C(${EVENT_ID})"
       ESD_DETAIL=${ALIROOT_SCRIPT_DIR}/esd-detail.dat
       if ! [[ -f "$ESD_DETAIL" ]]
       then
-        echo "ERROR: aliRoot analysis on event $i went wrong."
+        echo "ERROR: aliRoot analysis on event ${EVENT_ID} went wrong."
       fi
 
       ##############################
@@ -151,11 +152,11 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       mv --verbose ${ALIROOT_SCRIPT_DIR}/${FILE_WITH_DATA} ${BLENDER_SCRIPT_DIR}
       pushd ${BLENDER_SCRIPT_DIR}
       for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
-        blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="${FILE_WITH_DATA}" -n_event=$i -simulated_t=0.02 -fps=5 -resolution=50 -stamp_note="Texto no canto"
-        echo "${type} for event $i done."
+        blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="${FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.02 -fps=5 -resolution=50 -stamp_note="Texto no canto"
+        echo "${type} for event ${EVENT_ID} done."
       done
       popd
-      echo "EVENT $i DONE."
+      echo "EVENT ${EVENT_ID} DONE."
 
     done
   popd
