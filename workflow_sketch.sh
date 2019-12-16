@@ -73,12 +73,11 @@ if [ "$DEFAULT_ANIMATION" = "true" ]; then
     mkdir --verbose -p ${BLENDER_OUTPUT}
     mv --verbose /tmp/blender ${BLENDER_OUTPUT}
     echo "Done."
-fi
 
 ##############################
 # Animation from file        #
 ##############################
-if [ "$DEFAULT_ANIMATION" = "false" ]; then
+elif [ "$DEFAULT_ANIMATION" = "false" ]; then
 
   # Verify if AliESDs.root is here
   ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
