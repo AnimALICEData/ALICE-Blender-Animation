@@ -120,6 +120,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
 
   # Create directory where animations will be saved
   BLENDER_OUTPUT=$UNIQUEID
+  rm -rf ${BLENDER_OUTPUT}
   mkdir --verbose -p ${BLENDER_OUTPUT}
 
   # Get all extracted files
