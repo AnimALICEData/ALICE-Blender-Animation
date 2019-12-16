@@ -182,31 +182,11 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
     // have access to the current event.
     // once you return from the UserExec function, the manager will retrieve the next event from the chain
 
-    Int_t Event=0;
-    Int_t TrigEvent=0;
-    Int_t selectedEventID;
+    export_to_our_ESD_textual_format(esd_event_id);
 
-    ifstream s_event;
-    s_event.open ("s-event.dat",std::ifstream::in);
-    s_event >> selectedEventID;
-    s_event.close();
-
-    if(selectedEventID == -1) {
-
-      ofstream events_number;
-      events_number.open ("events_number.dat",std::ofstream::out);
-
-      events_number << esd_event_id+1;
-
-      events_number.close();
-
-    } else {
-      export_to_our_ESD_textual_format(esd_event_id);
-    }
-
-    Event++;
     esd_event_id++; // Increment global esd_event_id
-    fHistEvents->Fill(Event);
+
+    fHistEvents->Fill(esd_event_id);
 
                                                        // continue until all the tracks are processed
     PostData(1, fOutputList);                           // stream the results the analysis of this event to
