@@ -26,6 +26,7 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
 	TH1F*			fHistMass;      //! my particle histogram!! :D
         TH1F*                   fHistEvents; // Number of events
 
+	void export_to_our_ESD_textual_format (Int_t selectedEventID);
         AliAnalysisTaskMyTask(const AliAnalysisTaskMyTask&); // not implemented
         AliAnalysisTaskMyTask& operator=(const AliAnalysisTaskMyTask&); // not implemented
 

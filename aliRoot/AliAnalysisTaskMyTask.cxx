@@ -106,35 +106,10 @@ void AliAnalysisTaskMyTask::UserCreateOutputObjects()
                                         // fOutputList object. the manager will in the end take care of writing your output to file
                                         // so it needs to know what's in the output
 }
+
 //_____________________________________________________________________________
-void AliAnalysisTaskMyTask::UserExec(Option_t *)
+void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEventID)
 {
-    // user exec
-    // this function is called once for each event
-    // the manager will take care of reading the events from file, and with the static function InputEvent() you
-    // have access to the current event.
-    // once you return from the UserExec function, the manager will retrieve the next event from the chain
-
-    Int_t Event=0;
-    Int_t TrigEvent=0;
-    Int_t selectedEventID;
-
-    ifstream s_event;
-    s_event.open ("s-event.dat",std::ifstream::in);
-    s_event >> selectedEventID;
-    s_event.close();
-
-    if(selectedEventID == -1) {
-
-      ofstream events_number;
-      events_number.open ("events_number.dat",std::ofstream::out);
-
-      events_number << esd_event_id+1;
-
-      events_number.close();
-
-    } else {
-
       ofstream esd_detail;
       std::stringstream esd_filename;
       esd_filename << "esd_detail-event_" << selectedEventID << ".dat";
@@ -196,7 +171,37 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
       }
 
       esd_detail.close();
+}
 
+//_____________________________________________________________________________
+void AliAnalysisTaskMyTask::UserExec(Option_t *)
+{
+    // user exec
+    // this function is called once for each event
+    // the manager will take care of reading the events from file, and with the static function InputEvent() you
+    // have access to the current event.
+    // once you return from the UserExec function, the manager will retrieve the next event from the chain
+
+    Int_t Event=0;
+    Int_t TrigEvent=0;
+    Int_t selectedEventID;
+
+    ifstream s_event;
+    s_event.open ("s-event.dat",std::ifstream::in);
+    s_event >> selectedEventID;
+    s_event.close();
+
+    if(selectedEventID == -1) {
+
+      ofstream events_number;
+      events_number.open ("events_number.dat",std::ofstream::out);
+
+      events_number << esd_event_id+1;
+
+      events_number.close();
+
+    } else {
+      export_to_our_ESD_textual_format(esd_event_id);
     }
 
     Event++;
