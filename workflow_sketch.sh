@@ -9,8 +9,6 @@ export PATH="/mnt/SSD/schnorr/python/bin:$PATH"
 export ALIROOT_SCRIPT_DIR=$(pwd)/aliRoot/
 # Directory where blender scripts are
 export BLENDER_SCRIPT_DIR=$(pwd)/animate/
-# Directory where output animations should be placed
-export BLENDER_OUTPUT=$(pwd)/output/
 # alienv working directory
 export ALIENV_WORK_DIR=/mnt/SSD/schnorr/ALICE/sw/
 export ALIENV_OS_SPEC=ubuntu1604_x86-64
@@ -86,6 +84,7 @@ if [ "$DEFAULT_ANIMATION" = "true" ]; then
     pushd ${BLENDER_SCRIPT_DIR}
     blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="OverviewCamera" -datafile="d-esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
     popd
+    BLENDER_OUTPUT=.
     mkdir --verbose -p ${BLENDER_OUTPUT}
     mv --verbose /tmp/blender ${BLENDER_OUTPUT}
     echo "Done."
@@ -120,6 +119,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   #################################################
 
   # Create directory where animations will be saved
+  BLENDER_OUTPUT=$UNIQUEID
   mkdir --verbose -p ${BLENDER_OUTPUT}
 
   # Get all extracted files
