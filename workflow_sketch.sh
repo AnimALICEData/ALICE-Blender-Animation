@@ -97,7 +97,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   ##############################
   # Phase 1: aliroot extract   #
   ##############################
-  eval $(alienv -w /home/tropos/alice/sw -a ubuntu1804_x86-64 load ${ALIENV_ID}) #-w ${ALIENV_WORK_DIR} -a ubuntu1604_x86-64 load ${ALIENV_ID})
+  eval $(alienv -w ${ALIENV_WORK_DIR} -a ${ALIENV_OS_SPEC} load ${ALIENV_ID})
   pushd ${ALIROOT_SCRIPT_DIR}
   aliroot -q -b "runAnalysis.C(-1)"
 
