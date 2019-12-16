@@ -133,9 +133,6 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   FIRST_EVENT=0
   LAST_EVENT=$(echo "${n_events}-1" | bc)
   echo "Event identifiers are sequential from ${FIRST_EVENT} to ${LAST_EVENT}."
-  
-  exit
-
 
   #################################################
   # Phase 1: iteration for every event identifier #
