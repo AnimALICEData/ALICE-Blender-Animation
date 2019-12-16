@@ -140,7 +140,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   #################################################
   # Phase 1: iteration for every event identifier #
   #################################################
-  for EVENT_ID in "$(seq ${FIRST_EVENT} ${LAST_EVENT})"; do
+  for EVENT_ID in $(seq ${FIRST_EVENT} ${LAST_EVENT}); do
       echo $EVENT_ID
 
       ###############################################
