@@ -104,11 +104,12 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   aliroot -q -b "runAnalysis.C(-1)"
 
   ls -lh events_number.dat
-  n_events=`more events_number.dat` # stores number of events in ESD file
-  if ! [[ "$n_events" =~ ^[0-9]+$ ]] # verifies whether n_events is an integer
-      then
-          echo "Failed to extract number of events from file."
-  				exit
+  n_events=$(cat events_number.dat) # stores number of events in ESD file
+  if ! [[ "$n_events" =~ ^[0-9]+$ ]]; then # verifies whether n_events is an integer
+      echo "Failed to extract number of events from file."
+      exit
+  else
+      echo "The number of events in the file is ${n_events}."
   fi
 
   for ((i=0; i<n_events; i++))
