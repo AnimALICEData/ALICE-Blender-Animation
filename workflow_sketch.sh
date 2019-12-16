@@ -92,7 +92,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   mkdir --verbose -p ${BLENDER_OUTPUT}
 
   # Move ESD file to aliRoot directory
-  mv --verbose $(pwd)/AliESDs.root ${ALIROOT_SCRIPT_DIR}
+  mv --verbose ${ALIESD_ROOT_FILE} ${ALIROOT_SCRIPT_DIR}
 
   ##############################
   # Phase 1: aliroot extract   #
