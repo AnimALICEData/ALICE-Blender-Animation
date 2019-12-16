@@ -105,6 +105,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
 
   # Check if events_number.dat file exists
   FILE_WITH_NUMBER_OF_EVENTS=events_number.dat
+  FILE_WITH_DATA=esd-detail.dat
   if ! [[ -e ${FILE_WITH_NUMBER_OF_EVENTS} ]]; then
       echo "File $FILE_WITH_NUMBER_OF_EVENTS does not exist. Abort."
       exit
@@ -119,6 +120,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   fi
   # Erase output txt files
   rm -f ${FILE_WITH_NUMBER_OF_EVENTS}
+  rm -f ${FILE_WITH_DATA}
 
   exit
 
@@ -137,7 +139,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       mv --verbose ${ALIROOT_SCRIPT_DIR}/esd-detail.dat ${BLENDER_SCRIPT_DIR}
       pushd ${BLENDER_SCRIPT_DIR}
       for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
-        blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="esd-detail.dat" -n_event=$i -simulated_t=0.02 -fps=5 -resolution=50 -stamp_note="Texto no canto"
+        blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="${FILE_WITH_DATA}" -n_event=$i -simulated_t=0.02 -fps=5 -resolution=50 -stamp_note="Texto no canto"
         echo "${type} for event $i done."
       done
       popd

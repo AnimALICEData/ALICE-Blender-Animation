@@ -8,14 +8,11 @@
 
 int runAnalysis(int selected_event=0)
 {
-    ofstream esd_detail, s_event;
+    ofstream s_event;
 
     s_event.open ("s-event.dat");
     s_event << selected_event;
     s_event.close();
-
-    esd_detail.open ("esd-detail.dat");
-    esd_detail.close();
 
     // since we will compile a class, tell root where to look for headers
     gROOT->ProcessLine(".include $ROOTSYS/include");
