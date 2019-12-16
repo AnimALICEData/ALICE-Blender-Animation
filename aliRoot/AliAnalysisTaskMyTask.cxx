@@ -136,7 +136,9 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
     } else {
 
       ofstream esd_detail;
-      esd_detail.open ("esd-detail.dat",std::ofstream::app);
+      std::stringstream esd_filename;
+      esd_filename << "esd_detail-event_" << selectedEventID << ".dat";
+      esd_detail.open (esd_filename.str(),std::ofstream::app);
 
 
       fESD = dynamic_cast<AliESDEvent*>(InputEvent());    // get an event (called fESD) from the input file

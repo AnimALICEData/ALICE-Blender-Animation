@@ -4,6 +4,7 @@
 
 #ifndef AliAnalysisTaskMyTask_H
 #define AliAnalysisTaskMyTask_H
+#include <sstream>
 
 #include "AliAnalysisTaskSE.h"
 
