@@ -91,14 +91,16 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   # Create directory where animations will be saved
   mkdir --verbose -p ${BLENDER_OUTPUT}
 
-  # Move ESD file to aliRoot directory
-  mv --verbose ${ALIESD_ROOT_FILE} ${ALIROOT_SCRIPT_DIR}
-
   ##############################
   # Phase 1: aliroot extract   #
   ##############################
   eval $(alienv -w ${ALIENV_WORK_DIR} -a ${ALIENV_OS_SPEC} load ${ALIENV_ID})
   pushd ${ALIROOT_SCRIPT_DIR}
+  # Remove existing symbolic link
+  rm --verbose AliESDs.root
+  # Create a symbolic link to the actual AliESDs.root
+  ln --verbose -s ${ALIESD_ROOT_FILE} AliESDs.root
+  # Run the extraction tool
   aliroot -q -b "runAnalysis.C(-1)"
 
   ls -lh events_number.dat
