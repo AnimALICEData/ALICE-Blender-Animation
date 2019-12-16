@@ -140,8 +140,12 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
       ##############################
       # Phase 2: blender animate   #
       ##############################
-      mv --verbose ${ALIROOT_SCRIPT_DIR}/${FILE_WITH_DATA} ${BLENDER_SCRIPT_DIR}
       pushd ${BLENDER_SCRIPT_DIR}
+      # Remove symbolic link, if it does exists
+      rm -f ${FILE_WITH_DATA}
+      # Add a symbolic link to the data
+      ln -s ${ALIROOT_SCRIPT_DIR}/${FILE_WITH_DATA} ${BLENDER_SCRIPT_DIR}
+
       for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
         blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="${FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.02 -fps=5 -resolution=50 -stamp_note="${EVENT_UNIQUE_ID}"
         echo "${type} for event ${EVENT_ID} done."
