@@ -152,6 +152,8 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
           echo "WARNING: aliRoot extraction for event ${EVENT_ID} went wrong."
 	  echo "We are ignoring this and proceed to next event."
 	  continue
+      else
+	  echo "Extracted $FILE_WITH_DATA contains $(wc -l $FILE_WITH_DATA) lines."
       fi
 
       ##############################
