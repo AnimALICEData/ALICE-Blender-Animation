@@ -117,6 +117,10 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   else
       echo "The number of events in the file is ${n_events}."
   fi
+  # Erase output txt files
+  rm -f ${FILE_WITH_NUMBER_OF_EVENTS}
+
+  exit
 
   for ((i=0; i<n_events; i++)); do
 

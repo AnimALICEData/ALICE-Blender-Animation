@@ -8,11 +8,7 @@
 
 int runAnalysis(int selected_event=0)
 {
-    // Erase output txt files
-    ofstream esd_detail, s_event, events_number;
-
-    events_number.open ("events_number.dat");
-    events_number.close();
+    ofstream esd_detail, s_event;
 
     s_event.open ("s-event.dat");
     s_event << selected_event;
