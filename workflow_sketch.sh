@@ -13,6 +13,7 @@ export BLENDER_SCRIPT_DIR=$(pwd)/animate/
 export BLENDER_OUTPUT=$(pwd)/output/
 # alienv working directory
 export ALIENV_WORK_DIR=/home/tropos/alice/sw
+export ALIENV_OS_SPEC=ubuntu1604_x86-64
 export ALIENV_ID=AliPhysics/latest-aliroot5-user
 # Put blender 2.79b in the PATH env var
 export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
