@@ -122,6 +122,10 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   rm -f ${FILE_WITH_NUMBER_OF_EVENTS}
   rm -f ${FILE_WITH_DATA}
 
+  FIRST_EVENT=0
+  LAST_EVENT=$(echo "${n_events}-1" | bc)
+  echo "Event identifiers are sequential from ${FIRST_EVENT} to ${LAST_EVENT}."
+  
   exit
 
   for ((i=0; i<n_events; i++)); do
