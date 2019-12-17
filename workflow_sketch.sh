@@ -112,7 +112,7 @@ elif [ "$DEFAULT_ANIMATION" = "false" ]; then
   # Create a symbolic link to the actual AliESDs.root
   ln --verbose -s ${ALIESD_ROOT_FILE} AliESDs.root
   # Run the extraction tool
-  aliroot -q -b "runAnalysis.C"
+  aliroot runAnalysis.C
 
   #################################################
   # Phase 1: iteration for every event identifier #
