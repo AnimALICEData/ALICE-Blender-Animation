@@ -6,13 +6,8 @@
 // Leaving it blank will select event 0
 //
 
-int runAnalysis(int selected_event=0)
+void runAnalysis()
 {
-    ofstream s_event;
-
-    s_event.open ("s-event.dat");
-    s_event << selected_event;
-    s_event.close();
 
     // since we will compile a class, tell root where to look for headers
     gROOT->ProcessLine(".include $ROOTSYS/include");
