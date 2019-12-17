@@ -157,10 +157,10 @@ fi
 # Established Unique ID based on URL #
 ######################################
 UNIQUEID=$(echo $URL | sed \
-			   -e "s#http://opendata.cern.ch/##" \
-			   -e "s#/AliESDs.root##" \
-			   -e "s#files/assets/##" \
-			   -e "s#/#_#g")
+                     -e "s#http://opendata.cern.ch/##" \
+                     -e "s#/AliESDs.root##" \
+                     -e "s#files/assets/##" \
+                     -e "s#/#_#g")
 echo "The unique ID is $UNIQUEID."
 
 ##############################
@@ -216,41 +216,51 @@ elif [ "$DEFAULT" = "false" ]; then
   EXTRACTED_FILES=$(ls -1 esd_detail-event_*.dat | sort --version-sort)
   for FILE_WITH_DATA in $EXTRACTED_FILES; do
       EVENT_ID=$(echo $FILE_WITH_DATA | \
-		     sed -e "s#esd_detail-event_##" \
-			 -e "s#\.dat##")
+                 sed -e "s#esd_detail-event_##" \
+                   -e "s#\.dat##")
       EVENT_UNIQUE_ID=${UNIQUEID}_${EVENT_ID}
 
       if ! [[ -s $FILE_WITH_DATA ]]; then
-	  echo "File $FILE_WITH_DATA has zero size. Ignore and continue."
-	  continue
-      else
-	  echo "Processing ${EVENT_UNIQUE_ID} in blender"
+          echo "File $FILE_WITH_DATA has zero size. Ignore and continue."
+	  rm $FILE_WITH_DATA
+          continue
       fi
 
       ##############################
       # Phase 2: blender animate   #
       ##############################
-      pushd ${BLENDER_SCRIPT_DIR}
 
       LOCAL_FILE_WITH_DATA=${EVENT_UNIQUE_ID}.dat
       cp ${ALIROOT_SCRIPT_DIR}/$FILE_WITH_DATA \
-	 ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA}
+       ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA}
 
-      for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
-          echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in blender"
+      NUMBER_OF_PARTICLES=$(wc -l ${BLENDER_SCRIPT_DIR}/$LOCAL_FILE_WITH_DATA | \
+                        awk '{ print $1 }')
+      echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles"
+      if [[ $NUMBER_OF_PARTICLES -lt $MAX_PARTICLES ]]; then
+        echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES) in blender"
 
-          blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.01 -fps=5 -resolution=50 -stamp_note="${EVENT_UNIQUE_ID}"
-          # Move generated file to final location
-          mv /tmp/blender/* ${BLENDER_OUTPUT}
-          echo "${type} for event ${EVENT_ID} done."
-      done
+        pushd ${BLENDER_SCRIPT_DIR}
 
-      # Move processed file to final location
-      mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}
+        for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
+              echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in blender"
 
-      popd
-      echo "EVENT ${EVENT_ID} DONE."
+              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.01 -fps=5 -resolution=50 -stamp_note="${EVENT_UNIQUE_ID}"
+              # Move generated file to final location
+              mv /tmp/blender/* ${BLENDER_OUTPUT}
+              echo "${type} for event ${EVENT_ID} done."
+        done
 
+        # Move processed file to final location
+        mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}
+
+        popd
+        echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
+      else
+          echo "Too much particles (maximum accepted is $MAX_PARTICLES). Continue."
+	  rm $FILE_WITH_DATA
+        continue
+      fi
   done
   popd
 fi
