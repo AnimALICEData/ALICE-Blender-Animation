@@ -33,8 +33,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=hdau:
-LONGOPTS=help,download,default,url:,
+OPTIONS=hdau:m:
+LONGOPTS=maxparticles:,help,download,default,url:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -49,10 +49,10 @@ fi
 # read getopt’s output this way to handle the quoting right:
 eval set -- "$PARSED"
 
-
 ##############################
 # Parse Parameters           #
 ##############################
+MAX_PARTICLES=0
 HELP=false
 DOWNLOAD=false
 DEFAULT=false
@@ -60,29 +60,33 @@ URL=-
 # now enjoy the options in order and nicely split until we see --
 while true; do
     case "$1" in
-	-h|--help)
-	    HELP=true
-	    shift
-	    break
-	    ;;
+      -h|--help)
+          HELP=true
+          shift
+          break
+          ;;
         -d|--download)
             DOWNLOAD=true
             shift
             ;;
-	-a|--default)
+      -a|--default)
             DEFAULT=true
             shift
             ;;
-	-u|--url)
-	    URL="$2"
+      -u|--url)
+          URL="$2"
             shift 2
             ;;
+      -m|--maxparticles)
+          MAX_PARTICLES="$2"
+          shift 2
+          ;;
         --)
             shift
             break
             ;;
         *)
-            echo "Programming error"
+            echo "Programming error $*"
             exit 3
             ;;
     esac
@@ -112,6 +116,8 @@ Usage:
      Provide the URL to uniquely identify a AliESDs.root dataset.
      This should be in the format provided by http://opendata.cern.ch.
      See example below.
+   -m | --maxparticles VALUE
+     Get only events for which its number of particles is smaller than VALUE.
    -a | --default
      Creates a default animation with blender.
 
@@ -130,6 +136,7 @@ else
     echo "URL: $URL"
     echo "Download: $DOWNLOAD"
     echo "Default: $DEFAULT"
+    echo "Max particles: ${MAX_PARTICLES}"
     echo "-----------------------------------"
 fi
 
