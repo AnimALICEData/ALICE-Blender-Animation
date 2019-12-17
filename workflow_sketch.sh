@@ -58,7 +58,7 @@ MAX_PARTICLES=0
 HELP=false
 DOWNLOAD=false
 DEFAULT=false
-URL=-
+URL=
 # now enjoy the options in order and nicely split until we see --
 while true; do
     case "$1" in
@@ -154,6 +154,11 @@ else
     echo "-----------------------------------"
 fi
 
+if [[ $URL = "" ]]; then
+    echo "URL parameter is obligatory."
+    exit
+    usage
+fi
 ##############################
 # Download Dataset           #
 ##############################
