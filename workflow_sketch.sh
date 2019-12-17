@@ -33,8 +33,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=hdau:m:
-LONGOPTS=maxparticles:,help,download,default,url:
+OPTIONS=hdau:m:t:r:
+LONGOPTS=resolution:,duration:,maxparticles:,help,download,default,url:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -52,6 +52,8 @@ eval set -- "$PARSED"
 ##############################
 # Parse Parameters           #
 ##############################
+DURATION=10
+RESOLUTION=100
 MAX_PARTICLES=0
 HELP=false
 DOWNLOAD=false
@@ -65,7 +67,7 @@ while true; do
           shift
           break
           ;;
-        -d|--download)
+      -d|--download)
             DOWNLOAD=true
             shift
             ;;
@@ -79,6 +81,14 @@ while true; do
             ;;
       -m|--maxparticles)
           MAX_PARTICLES="$2"
+          shift 2
+          ;;
+      -t|--duration)
+          DURATION="$2"
+          shift 2
+          ;;
+      -r|--resolution)
+          RESOLUTION="$2"
           shift 2
           ;;
         --)
@@ -118,6 +128,10 @@ Usage:
      See example below.
    -m | --maxparticles VALUE
      Get only events for which its number of particles is smaller than VALUE.
+   -t | --duration VALUE
+     Set the animation duration in seconds.
+   -r | --resolution VALUE
+     Set the animation resolution percentage.
    -a | --default
      Creates a default animation with blender.
 
@@ -172,7 +186,7 @@ if [ "$DEFAULT" = "true" ]; then
     # Phase 1: blender animate   #
     ##############################
     pushd ${BLENDER_SCRIPT_DIR}
-    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=2 -camera="OverviewCamera" -datafile="d-esd-detail.dat" -simulated_t=0.02 -fps=5 -resolution=100 -stamp_note="Texto no canto"
+    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera="OverviewCamera" -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -stamp_note="Default animation"
     popd
     BLENDER_OUTPUT=.
     mkdir --verbose -p ${BLENDER_OUTPUT}
@@ -245,7 +259,7 @@ elif [ "$DEFAULT" = "false" ]; then
         for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
               echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in blender"
 
-              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.01 -fps=5 -resolution=50 -stamp_note="${EVENT_UNIQUE_ID}"
+              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -stamp_note="${EVENT_UNIQUE_ID}"
               # Move generated file to final location
               mv /tmp/blender/* ${BLENDER_OUTPUT}
               echo "${type} for event ${EVENT_ID} done."
@@ -257,7 +271,7 @@ elif [ "$DEFAULT" = "false" ]; then
         popd
         echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
       else
-          echo "Too much particles (maximum accepted is $MAX_PARTICLES). Continue."
+          echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
 	  rm $FILE_WITH_DATA
         continue
       fi
