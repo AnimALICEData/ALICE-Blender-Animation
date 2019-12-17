@@ -33,7 +33,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=hdau:m:t:r: # t-duration; r-resolution;
+OPTIONS=hdau:m:t:r:
 LONGOPTS=resolution:,duration:,maxparticles:,help,download,default,url:
 
 # -regarding ! and PIPESTATUS see above
