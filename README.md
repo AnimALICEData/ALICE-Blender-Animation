@@ -63,13 +63,13 @@ Once you are all set, run the `workflow_sketch.sh` script through your terminal 
 ./workflow_sketch.sh <DOWNLOAD> <URL>
 ```
 
-where <DOWNLOAD> is either "true" of "false", depending on whether you wish to download the ESD file or just go with the one you have already downloaded.
+where `<DOWNLOAD>` is either "true" of "false", depending on whether you wish to download the ESD file or just go with the one you have already downloaded.
 
-If you type in "true", fill in the <URL> field with your ESD's URL, copied in the previous section. The code will then automatically download and run the analysis on the file.
+If you type in "true", fill in the `<URL>` field with your ESD's URL, copied in the previous section. The code will then automatically download and run the analysis on the file.
 
-If you type in "false" - in which case you should have downloaded the ESD file yourself - just leave the <URL> field blank.
+If you type in "false" - in which case you should have downloaded the ESD file yourself - just leave the `<URL>` field blank.
 
-Have in mind that it will take a long time to generate all the animations.
+Have in mind that it may take a long time to generate all the animations.
 
 After running the script, your Blender animations should be ready! For each event inside the ESD file, there will be three animations saved in .mp4 format, each one corresponding to a different view of the event. They will be available inside the `output` directory. Enjoy!
 
