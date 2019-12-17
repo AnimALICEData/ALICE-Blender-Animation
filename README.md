@@ -53,25 +53,45 @@ Here, there are two options from which you can choose:
 
 - the first one is to download your ESD file and save it in the `alice-blender-animation` directory, which was cloned from the git repository. Make sure you save it on the same path as this `README.md` file and the `workflow_sketch.sh` script, not inside the "aliRoot" or "animate" directories. Also make sure the file is named `AliESDs.root`.
 
-- the second one is to copy the URL for the ESD file (the address you would click to download it) and paste it on the command line when you run the script that generates the animation, according to the next section.
+- the second one is to copy the URL for the ESD file (the address you would access to download it) and paste it on the command line when you run the script that generates the animation, according to the next section.
 
 ## Step 3 - Generating animation
 
-Once you are all set, run the `workflow_sketch.sh` script through your terminal in the following way:
+Once you are all set, all there is left to do is run the `workflow_sketch.sh` script through your terminal.
+
+If you have already downloaded the ESD file, run it as follows:
 
 ```bash
-./workflow_sketch.sh <DOWNLOAD> <URL>
+./workflow_sketch.sh --maxparticles <MAXPARTICLES> --duration <DURATION> --resolution <RESOLUTION>
 ```
 
-where `<DOWNLOAD>` is either "true" of "false", depending on whether you wish to download the ESD file or just go with the one you have already downloaded.
+where `<MAXPARTICLES>` is the highest number of particles that you wish the events about to be animated have. It means events with more particles than that will not be animated. Keep in mind that it takes extra amount of time to generate animations with too many particles, say, 5000 or more.
 
-If you type in "true", fill in the `<URL>` field with your ESD's URL, copied in the previous section. The code will then automatically download and run the analysis on the file.
+`<DURATION>` is the time duration, in seconds, each animation will last.
 
-If you type in "false" - in which case you should have downloaded the ESD file yourself - just leave the `<URL>` field blank.
+Finally, `<RESOLUTION>` is the animation resolution percentage, ranging from 0 (you don't want it to be 0) to 100.
 
-Have in mind that it may take a long time to generate all the animations.
+Here is a running example:
 
-After running the script, your Blender animations should be ready! For each event inside the ESD file, there will be three animations saved in .mp4 format, each one corresponding to a different view of the event. They will be available inside the `output` directory. Enjoy!
+```bash
+./workflow_sketch.sh --maxparticles 2000 --duration 15 --resolution 100
+```
+
+If you have copied the ESD's URL in the previous section and wish to download it automatically, run the script as:
+
+```bash
+./workflow_sketch.sh --url <URL> --download --maxparticles <MAXPARTICLES> --duration <DURATION> --resolution <RESOLUTION>
+```
+
+where `<URL>` is the ESD's URL you have at hand, and all the other arguments are the same as above.
+
+Here is a running example:
+
+```bash
+./workflow_sketch.sh --url http://opendata.cern.ch/record/1103/files/assets/alice/2010/LHC10h/000139173/ESD/0004/AliESDs.root --download --maxparticles 2000 --duration 15 --resolution 100
+```
+
+After running the script, your Blender animations should be ready! Have in mind that it may take a long time to generate all the animations. For each event inside the ESD file - with fewer particles than you have specified -, there will be three animations saved in .mp4 format, each one corresponding to a different view of the event. They will be available inside the `output` directory. Enjoy!
 
 
 # Default Animation
@@ -79,7 +99,7 @@ After running the script, your Blender animations should be ready! For each even
 For generating a default animation, simply run the script `workflow_sketch.sh` in your terminal as below:
 
 ```bash
-./workflow_sketch.sh 0 0 true
+./workflow_sketch.sh -a
 ```
 
 After this, a single default animation should be ready. It will be available inside the `output` directory, in mp4 format. Enjoy!
