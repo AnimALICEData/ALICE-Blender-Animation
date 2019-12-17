@@ -17,37 +17,118 @@ export ALIENV_ID=AliPhysics/latest-aliroot5-user
 export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
 
 ##############################
-# Usage                      #
+# Command-line options       #
 ##############################
-function usage()
-{
-    echo "$0 <DOWNLOAD> <URL> [DEFAULT_ANIMATION]";
-    echo "  where <URL> is a URL to uniquely identify a dataset";
-    echo "  where <DOWNLOAD> is true or false, indicate whether the dataset should be downloaded";
-    echo "  where <DEFAULT_ANIMATION> is optional, either true or false, to indicate if the default animation should be generated";
-    echo "  leaving <DEFAULT_ANIMATION> blank will generate custom animation from data file";
-    echo
-    echo
-    echo "Usage example:"
-    echo "./$0 true http://opendata.cern.ch/record/1103/files/assets/alice/2010/LHC10h/000139173/ESD/0004/AliESDs.root false"
-    echo
-}
+# See the following link to understand the code below
+# https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+
+# saner programming env: these switches turn some bugs into errors
+set -o errexit -o pipefail -o noclobber -o nounset
+
+# -allow a command to fail with !’s side effect on errexit
+# -use return value from ${PIPESTATUS[0]}, because ! hosed $?
+! getopt --test > /dev/null
+if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
+    echo 'I’m sorry, `getopt --test` failed in this environment.'
+    exit 1
+fi
+
+OPTIONS=hdau:
+LONGOPTS=help,download,default,url:,
+
+# -regarding ! and PIPESTATUS see above
+# -temporarily store output to be able to check for errors
+# -activate quoting/enhanced mode (e.g. by writing out “--options”)
+# -pass arguments only via   -- "$@"   to separate them correctly
+! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
+if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+    # e.g. return value is 1
+    #  then getopt has complained about wrong arguments to stdout
+    exit 2
+fi
+# read getopt’s output this way to handle the quoting right:
+eval set -- "$PARSED"
+
 
 ##############################
 # Parse Parameters           #
 ##############################
-DOWNLOAD=$1
-if [ -z $DOWNLOAD ]; then
-    echo "Error. Must explicitely inform whether to download the dataset or not."
-    usage
-    exit
+HELP=false
+DOWNLOAD=false
+DEFAULT=false
+URL=-
+# now enjoy the options in order and nicely split until we see --
+while true; do
+    case "$1" in
+	-h|--help)
+	    HELP=true
+	    shift
+	    break
+	    ;;
+        -d|--download)
+            DOWNLOAD=true
+            shift
+            ;;
+	-a|--default)
+            DEFAULT=true
+            shift
+            ;;
+	-u|--url)
+	    URL="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Programming error"
+            exit 3
+            ;;
+    esac
+done
+
+# handle non-option arguments
+if [[ $# -ne 0 ]]; then
+    echo "$0: non-option arguments ($#, $*) are ignored."
 fi
 
-URL=$2
+##############################
+# Usage                      #
+##############################
+function usage()
+{
+    # Using a here doc with standard out.
+    cat <<-END
+Usage:
+------
+   -h | --help
+     Display this help
+   -d | --download
+     Download the AliESDs.root file using the provided URL
+   -u | --url URL
+     Provide the URL to uniquely identify a AliESDs.root dataset.
+     This should be in the format provided by http://opendata.cern.ch.
+     See example below.
+   -a | --default
+     Creates a default animation with blender.
 
-DEFAULT_ANIMATION=$3
-if [ -z $DEFAULT_ANIMATION ]; then
-    DEFAULT_ANIMATION="false"
+Example:
+--------
+$0 --url http://opendata.cern.ch/record/1103/files/assets/alice/2010/LHC10h/000139173/ESD/0004/AliESDs.root --download
+
+END
+}
+
+if [[ $HELP = "true" ]]; then
+    usage
+    exit
+else
+    echo "-------- Parsed parameters --------"
+    echo "URL: $URL"
+    echo "Download: $DOWNLOAD"
+    echo "Default: $DEFAULT"
+    echo "-----------------------------------"
 fi
 
 ##############################
@@ -76,7 +157,7 @@ echo "The unique ID is $UNIQUEID."
 ##############################
 # Default synthetic animation#
 ##############################
-if [ "$DEFAULT_ANIMATION" = "true" ]; then
+if [ "$DEFAULT" = "true" ]; then
     echo "Preparing default animation."
     ##############################
     # Phase 1: blender animate   #
@@ -92,7 +173,7 @@ if [ "$DEFAULT_ANIMATION" = "true" ]; then
 ##############################
 # Animation from file        #
 ##############################
-elif [ "$DEFAULT_ANIMATION" = "false" ]; then
+elif [ "$DEFAULT" = "false" ]; then
 
   # Verify if AliESDs.root is here
   ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
