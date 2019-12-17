@@ -91,6 +91,8 @@ done
 # handle non-option arguments
 if [[ $# -ne 0 ]]; then
     echo "$0: non-option arguments ($#, $*) are ignored."
+    echo "Remove them manually as indicated between parenthesis."
+    exit
 fi
 
 ##############################
