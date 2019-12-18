@@ -233,7 +233,7 @@ elif [ "$DEFAULT" = "false" ]; then
   eval $(alienv -w ${ALIENV_WORK_DIR} -a ${ALIENV_OS_SPEC} load ${ALIENV_ID})
   pushd ${ALIROOT_SCRIPT_DIR}
   # Remove existing symbolic link
-  rm --verbose AliESDs.root
+  rm -f --verbose AliESDs.root
   # Create a symbolic link to the actual AliESDs.root
   ln --verbose -s ${ALIESD_ROOT_FILE} AliESDs.root
   # Run the extraction tool
