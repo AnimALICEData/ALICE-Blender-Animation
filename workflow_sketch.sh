@@ -33,8 +33,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=hdau:m:t:r:
-LONGOPTS=resolution:,duration:,maxparticles:,help,download,default,url:
+OPTIONS=c:hdau:m:t:r:
+LONGOPTS=camera:,resolution:,duration:,maxparticles:,help,download,default,url:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -52,6 +52,7 @@ eval set -- "$PARSED"
 ##############################
 # Parse Parameters           #
 ##############################
+CAMERA=Barrel
 DURATION=10
 RESOLUTION=100
 MAX_PARTICLES=0
@@ -91,6 +92,10 @@ while true; do
           RESOLUTION="$2"
           shift 2
           ;;
+      -c|--camera)
+	  CAMERA="$2"
+	  shift 2
+	  ;;
         --)
             shift
             break
@@ -125,6 +130,10 @@ Usage:
      Set the animation duration in seconds.
    -r | --resolution VALUE
      Set the animation resolution percentage.
+   -c | --camera VALUE
+     Which camera to use for the animation, where VALUE
+     is a comma-separated list (without spaces)
+     Options: Barrel,Forward,Overview (defaults to Barrel)
    -a | --default
      Creates a default animation with blender.
 
@@ -135,6 +144,11 @@ $0 --url http://opendata.cern.ch/record/1103/files/assets/alice/2010/LHC10h/0001
 END
 }
 
+# Fix CAMERA to be accepted by the for loop
+if [[ $CAMERA != "" ]]; then
+    CAMERA=$(echo $CAMERA | sed -e 's#,#Camera #g' -e 's#$#Camera#')
+fi
+
 if [[ $HELP = "true" ]]; then
     usage
     exit
@@ -144,6 +158,7 @@ else
     echo "Download: $DOWNLOAD"
     echo "Default: $DEFAULT"
     echo "Max particles: ${MAX_PARTICLES}"
+    echo "Camera: $CAMERA"
     echo "-----------------------------------"
 fi
 
@@ -262,7 +277,7 @@ elif [ "$DEFAULT" = "false" ]; then
 
         pushd ${BLENDER_SCRIPT_DIR}
 
-        for type in "BarrelCamera" "OverviewCamera" "ForwardCamera"; do
+        for type in $CAMERA; do
               echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in blender"
 
               blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -stamp_note="${EVENT_UNIQUE_ID}"
