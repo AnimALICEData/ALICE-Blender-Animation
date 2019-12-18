@@ -268,7 +268,7 @@ elif [ "$DEFAULT" = "false" ]; then
               blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -stamp_note="${EVENT_UNIQUE_ID}"
               # Move generated file to final location
               mv /tmp/blender/* ${BLENDER_OUTPUT}
-              echo "${type} for event ${EVENT_ID} done."
+              echo "${type} for event ${EVENT_UNIQUE_ID} done."
         done
 
         # Move processed file to final location
