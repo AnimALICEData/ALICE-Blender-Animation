@@ -1,10 +1,3 @@
-// Run:
-//
-// $ aliroot -q -b "runAnalysis.C(selected-event)"
-//
-// 'selected-event' is the desired event number inside the ESD file
-// Leaving it blank will select event 0
-//
 
 void runAnalysis()
 {
