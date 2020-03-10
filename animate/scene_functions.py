@@ -3,46 +3,114 @@ def init(unique_id):
     bcs = bpy.context.scene
 
     # Configure Environment
-    bcs.world.light_settings.use_environment_light = False
+    bcs.world.light_settings.use_environment_light = False # True ??
     bcs.world.light_settings.environment_energy = 0.1
 
     # Configure Stamp
-    bpy.context.scene.render.use_stamp = True
-    bpy.context.scene.render.use_stamp_time = False
-    bpy.context.scene.render.use_stamp_date = False
-    bpy.context.scene.render.use_stamp_render_time = False
-    bpy.context.scene.render.use_stamp_frame = False
-    bpy.context.scene.render.use_stamp_scene = False
-    bpy.context.scene.render.use_stamp_camera = False
-    bpy.context.scene.render.use_stamp_filename = False
-    bpy.context.scene.render.stamp_note_text = unique_id
-    bpy.context.scene.render.use_stamp_note = True
+    bcsr = bpy.context.scene.render
+    bcsr.use_stamp = True
+    bcsr.use_stamp_time = False
+    bcsr.use_stamp_date = False
+    bcsr.use_stamp_render_time = False
+    bcsr.use_stamp_frame = False
+    bcsr.use_stamp_scene = False
+    bcsr.use_stamp_camera = False
+    bcsr.use_stamp_filename = False
+    bcsr.stamp_note_text = unique_id
+    bcsr.use_stamp_note = True
 
     # Cleanup
     bpy.data.objects.remove(bpy.data.objects['Cube'])
     bpy.data.objects.remove(bpy.data.objects['Camera'])
+    #bpy.data.objects.remove(bpy.data.objects['Lamp'])
 
     # Basic Objects
     addCameras() # Add cameras
     addALICE_TPC() # ALICE TPC
 
 def addALICE_TPC():
+
     print("Adding ALICE TPC")
-    bpy.data.materials.new(name="TPC")
-    bpy.data.materials["TPC"].diffuse_color = (0, 0.635632, 0.8)
-    bpy.data.materials["TPC"].use_shadows = False
-    bpy.data.materials["TPC"].use_cast_shadows = False
-    bpy.data.materials["TPC"].use_transparency = True
-    bpy.data.materials["TPC"].alpha = 1
-    bpy.data.materials["TPC"].specular_alpha = 0
-    bpy.data.materials["TPC"].raytrace_transparency.fresnel_factor = 5
-    bpy.data.materials["TPC"].raytrace_transparency.fresnel = 0.3
-    bpy.ops.mesh.primitive_cylinder_add(radius=2.5, depth=5, view_align=False, enter_editmode=False, location=(0, 0, 0))
+
+    # Add big cube to subtract from TPC
+    bpy.ops.mesh.primitive_cube_add(location=(5.1,-5.1,0), radius=5.1)
+    bpy.context.object.name = "BigCube"
+
+    # ADD OUTER TPC
+
+    # Material
+    bpy.data.materials.new(name="outerTPC")
+    bpy.data.materials["outerTPC"].diffuse_color = (0, 255, 0) # Green
+    bpy.data.materials["outerTPC"].use_shadows = False
+    bpy.data.materials["outerTPC"].use_cast_shadows = False
+    bpy.data.materials["outerTPC"].use_transparency = True
+    bpy.data.materials["outerTPC"].alpha = 0.1
+    bpy.data.materials["outerTPC"].specular_alpha = 0
+    bpy.data.materials["outerTPC"].raytrace_transparency.fresnel_factor = 5
+    bpy.data.materials["outerTPC"].raytrace_transparency.fresnel = 0.3
+
+    # Add "hole" to subtract from the middle
+    bpy.ops.mesh.primitive_cylinder_add(radius=1.346, depth=6, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
+    outer_TPC_hole = bpy.context.object
+    outer_TPC_hole.name = "Hole"
+
+    # Add actual Outer TPC part
+    bpy.ops.mesh.primitive_cylinder_add(radius=2.461, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
+    outer_TPC = bpy.context.object
+    outer_TPC.name = "outerTPC"
+
+    # Subtract hole from main TPC part
+    bpy.ops.object.modifier_add(type='BOOLEAN')
+    bpy.context.object.modifiers["Boolean"].operation = 'DIFFERENCE'
+    bpy.context.object.modifiers["Boolean"].object = bpy.data.objects["Hole"]
+    bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Boolean")
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.data.objects["Hole"].select = True
+    bpy.ops.object.delete()
+
+    # Set material
+    outer_TPC.data.materials.clear()
+    outer_TPC.data.materials.append(bpy.data.materials["outerTPC"])
+
+
+
+    # ADD INNER TPC
+
+    # Material
+    bpy.data.materials.new(name="innerTPC")
+    bpy.data.materials["innerTPC"].diffuse_color = (0, 102, 255) # Blue
+    bpy.data.materials["innerTPC"].use_shadows = False
+    bpy.data.materials["innerTPC"].use_cast_shadows = False
+    bpy.data.materials["innerTPC"].use_transparency = True
+    bpy.data.materials["innerTPC"].alpha = 0.1
+    bpy.data.materials["innerTPC"].specular_alpha = 0
+    bpy.data.materials["innerTPC"].raytrace_transparency.fresnel_factor = 5
+    bpy.data.materials["innerTPC"].raytrace_transparency.fresnel = 0.3
+
+    # Add Inner TPC
+    bpy.ops.mesh.primitive_cylinder_add(radius=1.321, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0))
+    inner_TPC = bpy.context.object
+    inner_TPC.name = "innerTPC"
+
+    # Set Material
+    inner_TPC.data.materials.clear()
+    inner_TPC.data.materials.append(bpy.data.materials["innerTPC"])
+
+
+
+    # Make TPC one single object = inner + outer
+    bpy.data.objects["outerTPC"].select = True
+    bpy.ops.object.join()
     TPC = bpy.context.object
     TPC.name = "TPC"
-    TPC.data.materials.clear()
-    TPC.data.materials.append(bpy.data.materials["TPC"])
 
+    # Make TPC active object again
+    bpy.context.scene.objects.active = TPC
+
+    # Delete Big Cube
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.data.objects["BigCube"].select = True
+    bpy.ops.object.delete()
 
 def addCameras():
     # ForwardCamera
