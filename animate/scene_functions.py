@@ -1,3 +1,6 @@
+# Import Blender functions
+filename = os.path.join(os.path.basename(bpy.data.filepath), "blender_functions.py")
+exec(compile(open(filename).read(), filename, 'exec'))
 
 def init(unique_id):
     bcs = bpy.context.scene
@@ -30,8 +33,6 @@ def init(unique_id):
 
 def addALICE_TPC():
 
-    print("Adding ALICE TPC")
-
     # Add big cube to subtract from TPC
     bpy.ops.mesh.primitive_cube_add(location=(5.1,-5.1,0), radius=5.1)
     bpy.context.object.name = "BigCube"
@@ -39,15 +40,7 @@ def addALICE_TPC():
     # ADD OUTER TPC
 
     # Material
-    bpy.data.materials.new(name="outerTPC")
-    bpy.data.materials["outerTPC"].diffuse_color = (0, 255, 0) # Green
-    bpy.data.materials["outerTPC"].use_shadows = False
-    bpy.data.materials["outerTPC"].use_cast_shadows = False
-    bpy.data.materials["outerTPC"].use_transparency = True
-    bpy.data.materials["outerTPC"].alpha = 0.1
-    bpy.data.materials["outerTPC"].specular_alpha = 0
-    bpy.data.materials["outerTPC"].raytrace_transparency.fresnel_factor = 5
-    bpy.data.materials["outerTPC"].raytrace_transparency.fresnel = 0.3
+    createMaterial("outerTPC",R=0,G=255,B=0,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add "hole" to subtract from the middle
     bpy.ops.mesh.primitive_cylinder_add(radius=1.346, depth=6, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
@@ -60,32 +53,17 @@ def addALICE_TPC():
     outer_TPC.name = "outerTPC"
 
     # Subtract hole from main TPC part
-    bpy.ops.object.modifier_add(type='BOOLEAN')
-    bpy.context.object.modifiers["Boolean"].operation = 'DIFFERENCE'
-    bpy.context.object.modifiers["Boolean"].object = bpy.data.objects["Hole"]
-    bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Boolean")
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.data.objects["Hole"].select = True
-    bpy.ops.object.delete()
+    subtract(outer_TPC_hole,outer_TPC)
 
     # Set material
     outer_TPC.data.materials.clear()
     outer_TPC.data.materials.append(bpy.data.materials["outerTPC"])
 
 
-
     # ADD INNER TPC
 
     # Material
-    bpy.data.materials.new(name="innerTPC")
-    bpy.data.materials["innerTPC"].diffuse_color = (0, 102, 255) # Blue
-    bpy.data.materials["innerTPC"].use_shadows = False
-    bpy.data.materials["innerTPC"].use_cast_shadows = False
-    bpy.data.materials["innerTPC"].use_transparency = True
-    bpy.data.materials["innerTPC"].alpha = 0.1
-    bpy.data.materials["innerTPC"].specular_alpha = 0
-    bpy.data.materials["innerTPC"].raytrace_transparency.fresnel_factor = 5
-    bpy.data.materials["innerTPC"].raytrace_transparency.fresnel = 0.3
+    createMaterial("innerTPC",R=0,G=102,B=255,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add Inner TPC
     bpy.ops.mesh.primitive_cylinder_add(radius=1.321, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0))
@@ -99,8 +77,7 @@ def addALICE_TPC():
 
 
     # Make TPC one single object = inner + outer
-    bpy.data.objects["outerTPC"].select = True
-    bpy.ops.object.join()
+    joinObjects([inner_TPC,outer_TPC])
     TPC = bpy.context.object
     TPC.name = "TPC"
 
