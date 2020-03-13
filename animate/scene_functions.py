@@ -89,6 +89,47 @@ def addALICE_TPC():
     bpy.data.objects["BigCube"].select = True
     bpy.ops.object.delete()
 
+
+    # ADD EMCal
+
+    # Material
+    createMaterial("emcal",R=255,G=255,B=0,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+
+    # Add cylinder for EMCal
+    bpy.ops.mesh.primitive_cylinder_add(radius=4.3, depth=5.1, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))
+    EMCal = bpy.context.object
+    EMCal.name = "EMCal"
+
+    # Add cylinder to be removed from center
+    bpy.ops.mesh.primitive_cylinder_add(radius=2.8, depth=5.2, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))
+    emcal_hole = bpy.context.object
+    emcal_hole.name = "Hole"
+
+    subtract(emcal_hole,EMCal);
+
+    # Adds rotated cube to be removed from EMCal so that there's a 7.3° angle with top y axis, clockwise
+    bpy.ops.mesh.primitive_cube_add(location=(2.85,2.2,0), rotation=(0,0,-0.1274), radius=2.55)
+    bpy.ops.transform.resize(value=(1.5,1.5,1.5), constraint_axis=(False,False,True))
+    cube1 = bpy.context.object # first quadrant
+    subtract(cube1,EMCal)
+
+    # Adds rotated cube to be removed from EMCal so that there's a 9.7° angle with left x axis, anticlockwise
+    bpy.ops.mesh.primitive_cube_add(location=(-2.08,-2.95,0), rotation=(0,0,0.1693), radius=2.55)
+    bpy.ops.transform.resize(value=(1.5,1.5,1.5), constraint_axis=(False,False,True))
+    cube3 = bpy.context.object # third quadrant
+    subtract(cube3,EMCal)
+
+    #Adds cube with right angle in fourth quadrant to be removed from EMCal
+    bpy.ops.mesh.primitive_cube_add(location=(2.55,-2.55,0), radius=2.55)
+    bpy.ops.transform.resize(value=(1.5,1.5,1.5), constraint_axis=(False,False,True))
+    cube4 = bpy.context.object # fourth quadrant
+    subtract(cube4,EMCal)
+
+    # Set Material
+    EMCal.data.materials.clear()
+    EMCal.data.materials.append(bpy.data.materials["emcal"])
+
+
 def addCameras():
     # ForwardCamera
     bpy.ops.object.camera_add(location = (0,0,20), rotation = (0, 0, 0))
