@@ -38,7 +38,7 @@ parser.add_argument('-n_event','--n_event')
 args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
-# Import Drivers, partiles and scence functions:
+# Import Drivers, particles and scence functions:
 filename = os.path.join(os.path.basename(bpy.data.filepath), "drivers.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 

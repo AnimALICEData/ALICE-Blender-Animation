@@ -29,9 +29,9 @@ def init(unique_id):
 
     # Basic Objects
     addCameras() # Add cameras
-    addALICE_TPC() # ALICE TPC
+    addALICE_Geometry() # ALICE TPC, EMCal,
 
-def addALICE_TPC():
+def addALICE_Geometry():
 
     # Add big cube to subtract from TPC
     bpy.ops.mesh.primitive_cube_add(location=(5.1,-5.1,0), radius=5.1)
@@ -73,7 +73,6 @@ def addALICE_TPC():
     # Set Material
     inner_TPC.data.materials.clear()
     inner_TPC.data.materials.append(bpy.data.materials["innerTPC"])
-
 
 
     # Make TPC one single object = inner + outer
@@ -130,22 +129,86 @@ def addALICE_TPC():
     EMCal.data.materials.append(bpy.data.materials["emcal"])
 
 
+    # ADD ITS INNER BARREL
+
+    # Material
+    createMaterial("innerITS",R=139,G=0,B=139,shadows=False,cast_shadows=False,transperency=True,alpha=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+
+    # Add Inner ITS
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.0421, depth=0.271, view_align=False, enter_editmode=False, location=(0, 0, 0))
+    inner_TPC = bpy.context.object
+    inner_TPC.name = "innerITS"
+
+    # Set Material
+    inner_TPC.data.materials.clear()
+    inner_TPC.data.materials.append(bpy.data.materials["innerITS"])
+
+
+    # ADD ITS OUTER BARREL
+
+    # Material
+    createMaterial("outerITS",R=.200,G=0,B=.200,shadows=False,cast_shadows=False,transperency=True,alpha=0.2,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+
+    # ADD ITS MIDDLE LAYERS
+
+    # Add "hole" to subtract from the middle
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.1944, depth=0.9, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
+    middle_ITS_hole = bpy.context.object
+    middle_ITS_hole.name = "Hole"
+
+    # Add actual middle layer ITS part
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.247, depth=0.843, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
+    middle_ITS = bpy.context.object
+    middle_ITS.name = "middleITS"
+
+    # Subtract hole from main TPC part
+    subtract(middle_ITS_hole,middle_ITS)
+
+    # Set material
+    middle_ITS.data.materials.clear()
+    middle_ITS.data.materials.append(bpy.data.materials["outerITS"])
+
+
+    # ADD ITS OUTER LAYERS
+
+    # Add "hole" to subtract from the middle
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.3423, depth=1.5, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
+    outer_ITS_hole = bpy.context.object
+    outer_ITS_hole.name = "Hole"
+
+    # Add actual outer layer ITS part
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.3949, depth=1.475, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
+    outer_ITS = bpy.context.object
+    outer_ITS.name = "outerITS"
+
+    # Subtract hole from main TPC part
+    subtract(outer_ITS_hole,outer_ITS)
+
+    # Set material
+    outer_ITS.data.materials.clear()
+    outer_ITS.data.materials.append(bpy.data.materials["outerITS"])
+
+    # Make ITS middle and outer layers a single object
+    joinObjects([middle_ITS,outer_ITS])
+    Outer_ITS = bpy.context.object
+    Outer_ITS.name = "OuterITS"
+
+
 def addCameras():
     # ForwardCamera
-    bpy.ops.object.camera_add(location = (0,0,20), rotation = (0, 0, 0))
+    bpy.ops.object.camera_add(location = (0,1,20), rotation = (0, 0, 0))
     bpy.context.object.name = "ForwardCamera"
     camera_forward=bpy.data.objects['ForwardCamera']
     camera_forward.data.type = 'ORTHO'
-    camera_forward.data.ortho_scale = 10
+    camera_forward.data.ortho_scale = 13
 
     # OverviewCamera
-    bpy.ops.object.camera_add(location = (6.98591, -19.7115, 23.9696), rotation = (-0.281366, 0.683857, -1.65684))
+    bpy.ops.object.camera_add(location = (20.936, 9.8, 20.448), rotation = (-0.071558, 0.879645, 0.305433))
     bpy.context.object.name = "OverviewCamera"
     bpy.context.object.data.lens = 66.78
 
     # Barrel Camera
     bpy.ops.object.camera_add(location = (6, 0, 0), rotation = (0, 1.5708, 0))
-    #bpy.context.object.rotation_euler[1] = 1.5708
     bpy.context.object.name = "BarrelCamera"
 
 # Function that creates Blender Objects from input list of particles.
