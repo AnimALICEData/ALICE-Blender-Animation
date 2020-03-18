@@ -75,6 +75,7 @@ def addALICE_Geometry():
     inner_TPC.data.materials.append(bpy.data.materials["innerTPC"])
 
 
+
     # Make TPC one single object = inner + outer
     joinObjects([inner_TPC,outer_TPC])
     TPC = bpy.context.object
@@ -95,12 +96,12 @@ def addALICE_Geometry():
     createMaterial("emcal",R=255,G=255,B=0,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add cylinder for EMCal
-    bpy.ops.mesh.primitive_cylinder_add(radius=4.3, depth=5.1, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))
+    bpy.ops.mesh.primitive_cylinder_add(radius=4.7, depth=5.1, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))
     EMCal = bpy.context.object
     EMCal.name = "EMCal"
 
     # Add cylinder to be removed from center
-    bpy.ops.mesh.primitive_cylinder_add(radius=2.8, depth=5.2, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))
+    bpy.ops.mesh.primitive_cylinder_add(radius=4.35, depth=5.2, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))
     emcal_hole = bpy.context.object
     emcal_hole.name = "Hole"
 
@@ -192,6 +193,29 @@ def addALICE_Geometry():
     joinObjects([middle_ITS,outer_ITS])
     Outer_ITS = bpy.context.object
     Outer_ITS.name = "OuterITS"
+
+
+    # ADD ALICE TRD
+
+    # Material
+    createMaterial("TRD",R=0.9,G=0.9,B=0.9,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+
+    # Add "hole" to subtract from the middle
+    bpy.ops.mesh.primitive_cylinder_add(radius=2.9, depth=6, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
+    TRD_hole = bpy.context.object
+    TRD_hole.name = "Hole"
+
+    # Add actual TRD part
+    bpy.ops.mesh.primitive_cylinder_add(radius=3.7, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
+    TRD = bpy.context.object
+    TRD.name = "TRD"
+
+    # Subtract hole from main TRD part
+    subtract(TRD_hole,TRD)
+
+    # Set material
+    TRD.data.materials.clear()
+    TRD.data.materials.append(bpy.data.materials["TRD"])
 
 
 def addCameras():
