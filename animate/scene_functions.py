@@ -133,7 +133,7 @@ def addALICE_Geometry():
     # ADD ITS INNER BARREL
 
     # Material
-    createMaterial("innerITS",R=139,G=0,B=139,shadows=False,cast_shadows=False,transperency=True,alpha=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("innerITS",R=139,G=0,B=139,shadows=False,cast_shadows=False,transperency=True,alpha=0.7,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add Inner ITS
     bpy.ops.mesh.primitive_cylinder_add(radius=0.0421, depth=0.271, view_align=False, enter_editmode=False, location=(0, 0, 0))
@@ -148,7 +148,7 @@ def addALICE_Geometry():
     # ADD ITS OUTER BARREL
 
     # Material
-    createMaterial("outerITS",R=.200,G=0,B=.200,shadows=False,cast_shadows=False,transperency=True,alpha=0.2,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("outerITS",R=.200,G=0,B=.200,shadows=False,cast_shadows=False,transperency=True,alpha=0.7,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # ADD ITS MIDDLE LAYERS
 
@@ -198,15 +198,15 @@ def addALICE_Geometry():
     # ADD ALICE TRD
 
     # Material
-    createMaterial("TRD",R=0.9,G=0.9,B=0.9,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("TRD",R=0.2,G=0,B=0.2,shadows=False,cast_shadows=False,transperency=True,alpha=0.5,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add "hole" to subtract from the middle
-    bpy.ops.mesh.primitive_cylinder_add(radius=2.9, depth=6, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
+    bpy.ops.mesh.primitive_cylinder_add(radius=2.9, depth=6, vertices=18, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
     TRD_hole = bpy.context.object
     TRD_hole.name = "Hole"
 
     # Add actual TRD part
-    bpy.ops.mesh.primitive_cylinder_add(radius=3.7, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
+    bpy.ops.mesh.primitive_cylinder_add(radius=3.7, depth=5.1, vertices=18, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
     TRD = bpy.context.object
     TRD.name = "TRD"
 
@@ -216,6 +216,39 @@ def addALICE_Geometry():
     # Set material
     TRD.data.materials.clear()
     TRD.data.materials.append(bpy.data.materials["TRD"])
+
+    # Add 'slices' to subtract from TRD structure
+    bpy.ops.mesh.primitive_cube_add(radius=1, location=(2.855942,0.50358,0))
+    slice = bpy.context.object
+    slice.name = "slice"
+    bpy.ops.transform.resize(value=(1,0.03,4))
+    bpy.context.object.rotation_euler[2] = 0.174533
+    subtract(slice,TRD)
+
+    def rad(theta): # Convert degrees to radians
+        return theta * math.pi / 180
+
+    xn = 2.9 * math.cos(rad(10))
+    yn = 2.9 * math.sin(rad(10))
+
+    for n in range(1,18):
+
+        dx = -2 * 2.9 * math.sin(rad(10)) * math.sin(rad(n * 20))
+        xn += dx
+
+        dy = 2 * 2.9 * math.sin(rad(10)) * math.cos(rad(n * 20))
+        yn += dy
+
+        rotat = rad(10 + n*20)
+
+        bpy.ops.mesh.primitive_cube_add(radius=1, location=(xn,yn,0))
+        slice = bpy.context.object
+        slice.name = "slice"
+        #bpy.context.object.name = "slice" + str(n)
+        bpy.ops.transform.resize(value=(1,0.03,4))
+        bpy.context.object.rotation_euler[2] = rotat
+
+        subtract(slice,TRD)
 
 
 def addCameras():
