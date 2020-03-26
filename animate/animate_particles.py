@@ -2,7 +2,7 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -stamp_note="Texto no canto"
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transperency=1.2 -stamp_note="Texto no canto"
 #
 
 import os
@@ -35,6 +35,7 @@ parser.add_argument('-fps','--fps')
 parser.add_argument('-resolution','--resolution_percent')
 parser.add_argument('-stamp_note','--stamp_note')
 parser.add_argument('-n_event','--n_event')
+parser.add_argument('-transperency','--transp_par')
 args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
@@ -49,6 +50,7 @@ simulated_t = float(args.simulated_t) # in microsseconds
 duration = int(args.duration) # in seconds
 fps = int(args.fps)
 resolution_percent = int(args.resolution_percent)
+transp_par = float(args.transp_par)
 
 #configure output
 outputPath = "/tmp/blender/"
@@ -71,7 +73,7 @@ driver = dataDriver("AlirootFileGenerator",n_event,args.datafile) # Simple dataD
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
 
 ### Build scene
-init(args.stamp_note) # Cleanup, addCameras, addALICE_TPC
+init(args.stamp_note,renderCamera,transp_par) # Cleanup, addCameras, addALICE_TPC
 particles = driver.getParticles()
 blender_particles, blender_tracks = createSceneParticles(particles,createTracks = True) # Create blender objects - one sphere per particle
 

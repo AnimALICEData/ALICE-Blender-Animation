@@ -2,7 +2,7 @@
 filename = os.path.join(os.path.basename(bpy.data.filepath), "blender_functions.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
-def init(unique_id):
+def init(unique_id,camera_type,transp_par):
     bcs = bpy.context.scene
 
     # Configure Environment
@@ -29,71 +29,38 @@ def init(unique_id):
 
     # Basic Objects
     addCameras() # Add cameras
-    addALICE_Geometry() # ALICE TPC, EMCal,
 
-def addALICE_Geometry():
+    if camera_type == "ForwardCamera":
+        addALICE_Geometry(True,transp_par) # ALICE TPC, EMCal, ITS, TRD
+    else:
+        addALICE_Geometry(False,transp_par)
 
-    # Add big cube to subtract from TPC
-    bpy.ops.mesh.primitive_cube_add(location=(5.1,-5.1,0), radius=5.1)
-    bpy.context.object.name = "BigCube"
+def addALICE_Geometry(bright_colors=True, transp_par=1.0):
 
-    # ADD OUTER TPC
+    if bright_colors: # Defining sequence of RGB values to fill 'createMaterial' functions below
+        rgb_v = [13,13,25,10] # Colors for "ForwardCamera"
+    else:
+        rgb_v = [0.5,0.9,1,0.2] # Colors for "OverviewCamera" and "BarrelCamera"
+
+    # ADD TPC
 
     # Material
-    createMaterial("outerTPC",R=0,G=255,B=0,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("tpc",R=0,G=rgb_v[0],B=0,shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
-    # Add "hole" to subtract from the middle
-    bpy.ops.mesh.primitive_cylinder_add(radius=1.346, depth=6, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
-    outer_TPC_hole = bpy.context.object
-    outer_TPC_hole.name = "Hole"
-
-    # Add actual Outer TPC part
+    # Add TPC
     bpy.ops.mesh.primitive_cylinder_add(radius=2.461, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
-    outer_TPC = bpy.context.object
-    outer_TPC.name = "outerTPC"
-
-    # Subtract hole from main TPC part
-    subtract(outer_TPC_hole,outer_TPC)
-
-    # Set material
-    outer_TPC.data.materials.clear()
-    outer_TPC.data.materials.append(bpy.data.materials["outerTPC"])
-
-
-    # ADD INNER TPC
-
-    # Material
-    createMaterial("innerTPC",R=0,G=102,B=255,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
-
-    # Add Inner TPC
-    bpy.ops.mesh.primitive_cylinder_add(radius=1.321, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0))
-    inner_TPC = bpy.context.object
-    inner_TPC.name = "innerTPC"
-
-    # Set Material
-    inner_TPC.data.materials.clear()
-    inner_TPC.data.materials.append(bpy.data.materials["innerTPC"])
-
-
-
-    # Make TPC one single object = inner + outer
-    joinObjects([inner_TPC,outer_TPC])
     TPC = bpy.context.object
     TPC.name = "TPC"
 
-    # Make TPC active object again
-    bpy.context.scene.objects.active = TPC
-
-    # Delete Big Cube
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.data.objects["BigCube"].select = True
-    bpy.ops.object.delete()
+    # Set material
+    TPC.data.materials.clear()
+    TPC.data.materials.append(bpy.data.materials["tpc"])
 
 
     # ADD EMCal
 
     # Material
-    createMaterial("emcal",R=255,G=255,B=0,shadows=False,cast_shadows=False,transperency=True,alpha=0.1,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("emcal",R=rgb_v[1],G=rgb_v[1],B=0,shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.05,emit=1.5,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add cylinder for EMCal
     bpy.ops.mesh.primitive_cylinder_add(radius=4.7, depth=5.1, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))
@@ -133,7 +100,7 @@ def addALICE_Geometry():
     # ADD ITS INNER BARREL
 
     # Material
-    createMaterial("innerITS",R=139,G=0,B=139,shadows=False,cast_shadows=False,transperency=True,alpha=0.7,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("innerITS",R=rgb_v[2],G=0,B=rgb_v[2],shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.7,emit=0,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add Inner ITS
     bpy.ops.mesh.primitive_cylinder_add(radius=0.0421, depth=0.271, view_align=False, enter_editmode=False, location=(0, 0, 0))
@@ -148,7 +115,7 @@ def addALICE_Geometry():
     # ADD ITS OUTER BARREL
 
     # Material
-    createMaterial("outerITS",R=.200,G=0,B=.200,shadows=False,cast_shadows=False,transperency=True,alpha=0.7,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("outerITS",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.4,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # ADD ITS MIDDLE LAYERS
 
@@ -198,7 +165,7 @@ def addALICE_Geometry():
     # ADD ALICE TRD
 
     # Material
-    createMaterial("TRD",R=0.2,G=0,B=0.2,shadows=False,cast_shadows=False,transperency=True,alpha=0.5,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("TRD",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.15,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add "hole" to subtract from the middle
     bpy.ops.mesh.primitive_cylinder_add(radius=2.9, depth=6, vertices=18, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
@@ -244,7 +211,6 @@ def addALICE_Geometry():
         bpy.ops.mesh.primitive_cube_add(radius=1, location=(xn,yn,0))
         slice = bpy.context.object
         slice.name = "slice"
-        #bpy.context.object.name = "slice" + str(n)
         bpy.ops.transform.resize(value=(1,0.03,4))
         bpy.context.object.rotation_euler[2] = rotat
 
@@ -253,14 +219,14 @@ def addALICE_Geometry():
 
 def addCameras():
     # ForwardCamera
-    bpy.ops.object.camera_add(location = (0,1,20), rotation = (0, 0, 0))
+    bpy.ops.object.camera_add(location = (0,0.5,20), rotation = (0, 0, 0))
     bpy.context.object.name = "ForwardCamera"
     camera_forward=bpy.data.objects['ForwardCamera']
     camera_forward.data.type = 'ORTHO'
-    camera_forward.data.ortho_scale = 13
+    camera_forward.data.ortho_scale = 18
 
     # OverviewCamera
-    bpy.ops.object.camera_add(location = (20.936, 9.8, 20.448), rotation = (-0.071558, 0.879645, 0.305433))
+    bpy.ops.object.camera_add(location = (23.27182, 10.3968, 22.754), rotation = (-0.071558, 0.879645, 0.305433))
     bpy.context.object.name = "OverviewCamera"
     bpy.context.object.data.lens = 66.78
 

@@ -33,8 +33,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=c:hdau:m:t:r:
-LONGOPTS=camera:,resolution:,duration:,maxparticles:,help,download,default,url:
+OPTIONS=c:hdau:m:t:r:b:
+LONGOPTS=camera:,resolution:,transperency:,duration:,maxparticles:,help,download,default,url:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -52,9 +52,10 @@ eval set -- "$PARSED"
 ##############################
 # Parse Parameters           #
 ##############################
-CAMERA=Barrel
+CAMERA=Overview
 DURATION=10
 RESOLUTION=100
+TRANSPERENCY=1
 MAX_PARTICLES=0
 HELP=false
 DOWNLOAD=false
@@ -92,10 +93,14 @@ while true; do
           RESOLUTION="$2"
           shift 2
           ;;
+      -b|--transperency)
+          TRANSPERENCY="$2"
+          shift 2
+          ;;
       -c|--camera)
-	  CAMERA="$2"
-	  shift 2
-	  ;;
+      	  CAMERA="$2"
+      	  shift 2
+      	  ;;
         --)
             shift
             break
@@ -130,6 +135,9 @@ Usage:
      Set the animation duration in seconds.
    -r | --resolution VALUE
      Set the animation resolution percentage.
+   -b | --transperency VALUE
+     Set detector transperency as a number greater than zero,
+     where zero is full transperency and 1 is standard transperency
    -c | --camera VALUE
      Which camera to use for the animation, where VALUE
      is a comma-separated list (without spaces)
@@ -157,6 +165,9 @@ else
     echo "URL: $URL"
     echo "Download: $DOWNLOAD"
     echo "Default: $DEFAULT"
+    echo "Transperency Parameter: $TRANSPERENCY"
+    echo "Duration: $DURATION"
+    echo "Resolution: $RESOLUTION"
     echo "Max particles: ${MAX_PARTICLES}"
     echo "Camera: $CAMERA"
     echo "-----------------------------------"
@@ -207,7 +218,7 @@ if [ "$DEFAULT" = "true" ]; then
     # Phase 1: blender animate   #
     ##############################
     pushd ${BLENDER_SCRIPT_DIR}
-    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera="OverviewCamera" -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -stamp_note="Default animation"
+    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${CAMERA} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="Default animation"
     popd
     BLENDER_OUTPUT=.
     mkdir --verbose -p ${BLENDER_OUTPUT}
@@ -280,7 +291,7 @@ elif [ "$DEFAULT" = "false" ]; then
         for type in $CAMERA; do
               echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in blender"
 
-              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -stamp_note="${EVENT_UNIQUE_ID}"
+              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}"
               # Move generated file to final location
               mv /tmp/blender/* ${BLENDER_OUTPUT}
               echo "${type} for event ${EVENT_UNIQUE_ID} done."
