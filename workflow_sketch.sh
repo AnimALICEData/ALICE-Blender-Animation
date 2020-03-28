@@ -33,8 +33,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=c:hdau:m:t:r:b:
-LONGOPTS=camera:,resolution:,transperency:,duration:,maxparticles:,help,download,default,url:
+OPTIONS=c:hdau:m:t:r:b:ipqe
+LONGOPTS=camera:,resolution:,transperency:,duration:,maxparticles:,help,download,default,url:,its,tpc,trd,emcal
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -61,6 +61,10 @@ HELP=false
 DOWNLOAD=false
 DEFAULT=false
 URL=
+ITS=1 # 1 means "build this detector", while 0 means "don't"
+TPC=1
+TRD=1
+EMCAL=1
 # now enjoy the options in order and nicely split until we see --
 while true; do
     case "$1" in
@@ -101,6 +105,22 @@ while true; do
       	  CAMERA="$2"
       	  shift 2
       	  ;;
+      -i|--its)
+          ITS=0
+          shift
+          ;;
+      -p|--tpc)
+          TPC=0
+          shift
+          ;;
+      -q|--trd)
+          TRD=0
+          shift
+          ;;
+      -e|--emcal)
+          EMCAL=0
+          shift
+          ;;
         --)
             shift
             break
@@ -144,6 +164,14 @@ Usage:
      Options: Barrel,Forward,Overview (defaults to Barrel)
    -a | --default
      Creates a default animation with blender.
+   -i | --its
+     Removes ITS detector from animation
+   -p | --tpc
+     Removes TPC detector from animation
+   -q | --trd
+     Removes TRD detector from animation
+   -e | --emcal
+     Removes EMCal detector from animation
 
 Example:
 --------
@@ -171,6 +199,24 @@ else
     echo "Max particles: ${MAX_PARTICLES}"
     echo "Camera: $CAMERA"
     echo "-----------------------------------"
+    echo "------------ Detectors ------------"
+    if [[ $ITS = 1 ]]; then
+      echo "Building ITS"
+    fi
+    if [[ $TPC = 1 ]]; then
+      echo "Building TPC"
+    fi
+    if [[ $TRD = 1 ]]; then
+      echo "Building TRD"
+    fi
+    if [[ $EMCAL = 1 ]]; then
+      echo "Building EMCAL"
+    fi
+    if [[ $TPC = 0 && $TPC = 0 && $TRD = 0 && $EMCAL = 0 ]]; then
+      echo "Not building any detectors"
+    fi
+    echo "-----------------------------------"
+
 fi
 
 if [[ $URL = "" ]]; then
@@ -218,7 +264,7 @@ if [ "$DEFAULT" = "true" ]; then
     # Phase 1: blender animate   #
     ##############################
     pushd ${BLENDER_SCRIPT_DIR}
-    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${CAMERA} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="Default animation"
+    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${CAMERA} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="Default animation" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
     popd
     BLENDER_OUTPUT=.
     mkdir --verbose -p ${BLENDER_OUTPUT}
@@ -291,7 +337,7 @@ elif [ "$DEFAULT" = "false" ]; then
         for type in $CAMERA; do
               echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in blender"
 
-              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}"
+              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
               # Move generated file to final location
               mv /tmp/blender/* ${BLENDER_OUTPUT}
               echo "${type} for event ${EVENT_UNIQUE_ID} done."
