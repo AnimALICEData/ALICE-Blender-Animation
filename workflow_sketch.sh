@@ -264,7 +264,7 @@ if [ "$DEFAULT" = "true" ]; then
     # Phase 1: blender animate   #
     ##############################
     pushd ${BLENDER_SCRIPT_DIR}
-    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${CAMERA} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="Default animation" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${CAMERA} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
     popd
     BLENDER_OUTPUT=.
     mkdir --verbose -p ${BLENDER_OUTPUT}
@@ -284,6 +284,10 @@ elif [ "$DEFAULT" = "false" ]; then
       exit
   fi
 
+  # Create directory where animations will be saved
+  BLENDER_OUTPUT=$(pwd)/$UNIQUEID
+  mkdir --verbose -p ${BLENDER_OUTPUT}
+
   ############################
   # Phase 1: aliroot extract #
   ############################
@@ -301,8 +305,8 @@ elif [ "$DEFAULT" = "false" ]; then
   #################################################
 
   # Create directory where animations will be saved
-  BLENDER_OUTPUT=$(pwd)/$UNIQUEID
-  mkdir --verbose -p ${BLENDER_OUTPUT}
+  #BLENDER_OUTPUT=$(pwd)/$UNIQUEID
+  #mkdir --verbose -p ${BLENDER_OUTPUT}
 
   # Get all extracted files
   EXTRACTED_FILES=$(ls -1 esd_detail-event_*.dat | sort --version-sort)
@@ -314,7 +318,7 @@ elif [ "$DEFAULT" = "false" ]; then
 
       if ! [[ -s $FILE_WITH_DATA ]]; then
           echo "File $FILE_WITH_DATA has zero size. Ignore and continue."
-	  rm $FILE_WITH_DATA
+	        rm $FILE_WITH_DATA
           continue
       fi
 
@@ -325,6 +329,8 @@ elif [ "$DEFAULT" = "false" ]; then
       LOCAL_FILE_WITH_DATA=${EVENT_UNIQUE_ID}.dat
       cp ${ALIROOT_SCRIPT_DIR}/$FILE_WITH_DATA \
        ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA}
+
+      rm $FILE_WITH_DATA
 
       NUMBER_OF_PARTICLES=$(wc -l ${BLENDER_SCRIPT_DIR}/$LOCAL_FILE_WITH_DATA | \
                         awk '{ print $1 }')
@@ -344,15 +350,21 @@ elif [ "$DEFAULT" = "false" ]; then
         done
 
         # Move processed file to final location
-        mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}
+        mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
 
         popd
         echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
       else
-          echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
-	  rm $FILE_WITH_DATA
+        echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
+
+        # Remove non-processed files
+        pushd ${BLENDER_SCRIPT_DIR}
+        rm $LOCAL_FILE_WITH_DATA
+        popd
+
         continue
       fi
   done
   popd
+
 fi
