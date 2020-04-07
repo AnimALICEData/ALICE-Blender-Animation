@@ -106,14 +106,14 @@ void AliAnalysisTaskMyTask::UserCreateOutputObjects()
                                         // fOutputList object. the manager will in the end take care of writing your output to file
                                         // so it needs to know what's in the output
 }
-
 //_____________________________________________________________________________
 void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEventID)
 {
-      ofstream esd_detail;
+      ofstream esd_detail, uniqueid;
       std::stringstream esd_filename;
       esd_filename << "esd_detail-event_" << selectedEventID << ".dat";
       esd_detail.open (esd_filename.str(),std::ofstream::app);
+      uniqueid.open ("uniqueid.txt");
 
 
       fESD = dynamic_cast<AliESDEvent*>(InputEvent());    // get an event (called fESD) from the input file
@@ -124,6 +124,20 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
       if(!fESD) return;                                   // if the pointer to the event is empty (getting it failed) skip this event
           // example part: i'll show how to loop over the tracks in an event
           // and extract some information from them which we'll store in a histogram
+
+
+      // ___________________________________________
+      // Write ESD unique_id information on file
+
+      Int_t run_number = fESD->GetRunNumber();
+      Int_t orbit_number = fESD->GetOrbitNumber();
+      Int_t bunch_cross_number = fESD->GetBunchCrossNumber();
+
+      if(run_number != 0 && orbit_number != 0 && bunch_cross_number != 0) { // If all numbers are different than zero, write'em to file
+        uniqueid << "Run" << run_number << "_Orbit" << orbit_number << "_BunchCross" << bunch_cross_number << endl;
+      }
+
+      //___________________________________________
 
       Int_t iTracks(fESD->GetNumberOfTracks());           // see how many tracks there are in the event
 
@@ -171,6 +185,7 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
       }
 
       esd_detail.close();
+      uniqueid.close();
 }
 
 //_____________________________________________________________________________

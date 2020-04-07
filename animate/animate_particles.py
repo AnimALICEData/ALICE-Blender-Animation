@@ -75,7 +75,7 @@ driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdent
 """
 
 # Create and configure animation driver
-driver = dataDriver("AlirootFileGenerator",n_event,args.datafile) # Simple dataDriver takes one parameters: filename
+driver = dataDriver("AlirootFileGenerator",n_event,args.datafile) # Simple dataDriver
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
 
 ### Build scene

@@ -219,12 +219,6 @@ else
 
 fi
 
-if [[ $URL = "" ]]; then
-    echo "URL parameter is obligatory."
-    exit
-    usage
-fi
-
 # handle non-option arguments
 if [[ $# -ne 0 ]]; then
     echo "$0: non-option arguments ($#, $*) are ignored."
@@ -237,23 +231,25 @@ fi
 ##############################
 if [ "$DOWNLOAD" = "true" ]; then
     if [ -z $URL ]; then
-        echo "Error. Must pass the dataset URL."
+        echo "Error. Must pass the dataset URL in order to download ESD file."
         usage
         exit
     fi
     echo "Downloading data."
     wget $URL
-fi
 
-######################################
-# Established Unique ID based on URL #
-######################################
-UNIQUEID=$(echo $URL | sed \
-                     -e "s#http://opendata.cern.ch/##" \
-                     -e "s#/AliESDs.root##" \
-                     -e "s#files/assets/##" \
-                     -e "s#/#_#g")
-echo "The unique ID is $UNIQUEID."
+    ######################################
+    # Established Unique ID based on URL #
+    ######################################
+    UNIQUEID=$(echo $URL | sed \
+                         -e "s#http://opendata.cern.ch/##" \
+                         -e "s#/AliESDs.root##" \
+                         -e "s#files/assets/##" \
+                         -e "s#/#_#g")
+
+    echo "The unique ID is $UNIQUEID."
+
+fi
 
 ##############################
 # Default synthetic animation#
@@ -284,10 +280,6 @@ elif [ "$DEFAULT" = "false" ]; then
       exit
   fi
 
-  # Create directory where animations will be saved
-  BLENDER_OUTPUT=$(pwd)/$UNIQUEID
-  mkdir --verbose -p ${BLENDER_OUTPUT}
-
   ############################
   # Phase 1: aliroot extract #
   ############################
@@ -300,13 +292,23 @@ elif [ "$DEFAULT" = "false" ]; then
   # Run the extraction tool
   aliroot runAnalysis.C
 
+  if [ "$DOWNLOAD" = "false" ]; then
+
+    UNIQUEID=$(more uniqueid.txt)
+    echo "The unique ID is $UNIQUEID."
+    rm uniqueid.txt
+
+  fi
+
+  # Create directory where animations will be saved
+  popd
+  BLENDER_OUTPUT=$(pwd)/$UNIQUEID
+  mkdir --verbose -p ${BLENDER_OUTPUT}
+  pushd ${ALIROOT_SCRIPT_DIR} # push back to aliroot directory
+
   #################################################
   # Phase 1: iteration for every event identifier #
   #################################################
-
-  # Create directory where animations will be saved
-  #BLENDER_OUTPUT=$(pwd)/$UNIQUEID
-  #mkdir --verbose -p ${BLENDER_OUTPUT}
 
   # Get all extracted files
   EXTRACTED_FILES=$(ls -1 esd_detail-event_*.dat | sort --version-sort)

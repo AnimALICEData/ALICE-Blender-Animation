@@ -46,7 +46,7 @@ class animationDriver:
         bcsr.ffmpeg.packetsize = 2048
         bcsr.ffmpeg.muxrate = 10080000
         xpixels = int(bcsr.resolution_percentage * bcsr.resolution_x / 100)
-        output_prefix=fileIdentifier+str(xpixels)+"px_"+self.name+self.renderCamera
+        output_prefix=self.fileIdentifier+str(xpixels)+"px_"+self.name+self.renderCamera
         bcsr.filepath = "/tmp/blender/"+output_prefix
 
 class genDriver(animationDriver): # A driver for particle generators
