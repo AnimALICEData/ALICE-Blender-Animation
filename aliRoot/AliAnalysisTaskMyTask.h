@@ -22,9 +22,9 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
     private:
         AliESDEvent*            fESD;           //! input event
         TList*                  fOutputList;    //! output list
-        TH1F*                   fHistPt;        //! dummy histogram
-	TH1F*			fHistMass;      //! my particle histogram!! :D
-        TH1F*                   fHistEvents; // Number of events
+        TH1F*                   fHistPt;        //! Pt histogram
+        TH1F*                   fHistAvgPz;     //! |<Pz>| histogram
+	      TH1F*			              fHistMass;      //! my particle histogram!! :D
 
 	void export_to_our_ESD_textual_format (Int_t selectedEventID);
         AliAnalysisTaskMyTask(const AliAnalysisTaskMyTask&); // not implemented

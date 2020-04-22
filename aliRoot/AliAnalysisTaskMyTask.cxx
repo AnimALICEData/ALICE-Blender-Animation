@@ -42,14 +42,14 @@ using namespace std;            // std namespace: so you can do things like 'cou
 ClassImp(AliAnalysisTaskMyTask) // classimp: necessary for root
 
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask() : AliAnalysisTaskSE(),
-    fESD(0), fOutputList(0), fHistPt(0),    fHistEvents(0), fHistMass(0)
+    fESD(0), fOutputList(0), fHistPt(0), fHistAvgPz(0), fHistMass(0)
 {
     // default constructor, don't allocate memory here!
     // this is used by root for IO purposes, it needs to remain empty
 }
 //_____________________________________________________________________________
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask(const char* name) : AliAnalysisTaskSE(name),
-    fESD(0), fOutputList(0), fHistPt(0),  fHistEvents(0), fHistMass(0)
+    fESD(0), fOutputList(0), fHistPt(0), fHistAvgPz(0), fHistMass(0)
 {
     // constructor
     DefineInput(0, TChain::Class());    // define the input of the analysis: in this case we take a 'chain' of events
@@ -86,21 +86,19 @@ void AliAnalysisTaskMyTask::UserCreateOutputObjects()
                                         // if requested (dont worry about this now)
 
     // example of a histogram
-    fHistPt = new TH1F("fHistPt", "fHistPt", 100, 0, 10);       // create your histogra
+    fHistPt = new TH1F("fHistPt", "fHistPt", 100, 0, 10);       // create histogram
     fOutputList->Add(fHistPt);          // don't forget to add it to the list! the list will be written to file, so if you want
                                         // your histogram in the output file, add it to the list!
+
+    // |<Pz>| histogram: absolute value of average Pz (or Pz per track) for each event
+    fHistAvgPz = new TH1F("fHistAvgPz", "fHistAvgPz", 100, 0, 0.1);       // create histogram
+    fOutputList->Add(fHistAvgPz);
 
     // my mass histogram
     Double_t fHistMassEdges[12] = {0.0,0.0005,0.0405,0.08,0.12,0.13,0.17,0.48,0.52,0.92,0.96,1.0}; // 11 bins =>> has 11+1 = 12 edges
 
     fHistMass = new TH1F("fHistMass","Particle Histogram;M_{particle}", 11, fHistMassEdges);
     fOutputList->Add(fHistMass);
-
-
-    // Histograms for dimuons
-    fHistEvents = new TH1F("fHistEvents","fHistEvents;N_{events}",100,0.,10000.);
-
-    fOutputList->Add(fHistEvents);
 
     PostData(1, fOutputList);           // postdata will notify the analysis manager of changes / updates to the
                                         // fOutputList object. the manager will in the end take care of writing your output to file
@@ -117,8 +115,6 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
 
 
       fESD = dynamic_cast<AliESDEvent*>(InputEvent());    // get an event (called fESD) from the input file
-
-                                                          // there's another event format (ESD) which works in a similar way
 
 
       if(!fESD) return;                                   // if the pointer to the event is empty (getting it failed) skip this event
@@ -155,6 +151,8 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
 
       if(selectedEventID == esd_event_id) { // when we get to the selected event, fill histograms and write data
 
+        Double_t PzSum = 0;
+
         for(Int_t i(0); i < iTracks; i++) {                 // loop over all these tracks
 
           		AliESDtrack* track = static_cast<AliESDtrack*>(fESD->GetTrack(i));         // get a track (type AliESDtrack) from the event
@@ -169,6 +167,8 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
           		Double_t Pt = track->Pt(); // transversal momentum, in case we need it
           		Double_t Pz = track->Pz();
 
+              PzSum += Pz/iTracks; // Pz sum for |<Pz>| histogram
+
           		Double_t Charge = track->Charge();
 
             	// Add VERTEX (x, y, z), MASS, CHARGE and MOMENTUM (x, y, z) to esd-detail.dat file
@@ -181,7 +181,11 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
             	fHistMass->Fill(Mass);
 
           }
-
+              if(PzSum>0) {
+                fHistAvgPz->Fill(PzSum);
+              } else {
+                fHistAvgPz->Fill(-PzSum);
+              }
       }
 
       esd_detail.close();
@@ -200,8 +204,6 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
     export_to_our_ESD_textual_format(esd_event_id);
 
     esd_event_id++; // Increment global esd_event_id
-
-    fHistEvents->Fill(esd_event_id);
 
                                                        // continue until all the tracks are processed
     PostData(1, fOutputList);                           // stream the results the analysis of this event to
