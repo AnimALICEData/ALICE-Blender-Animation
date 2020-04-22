@@ -39,7 +39,7 @@ The animation making can be summarized in three basic steps:
 
 In case you are not conCERNed about the data being used for the animation and only wish to generate a standard one, skip to the Default Animation section below. For detailed steps on how to make the animation from ESDs, as described above, read the following sections.
 
-## Step 1 - Installing aliRoot
+## Step 1 - Installing Aliroot
 
 Here is the sequence of steps for installing Aliroot, CERN's official software for ALICE physics analysis, so you are able to process the relevant information for the project.
 

@@ -7,13 +7,13 @@
 export PATH="/mnt/SSD/schnorr/python/bin:$PATH"
 # Directory where runAnalysis.C is placed
 export ALIROOT_SCRIPT_DIR=$(pwd)/aliRoot/
-# Directory where blender scripts are
+# Directory where Blender scripts are
 export BLENDER_SCRIPT_DIR=$(pwd)/animate/
 # alienv working directory
 export ALIENV_WORK_DIR=/home/breno/alice/sw
 export ALIENV_OS_SPEC=ubuntu1804_x86-64
 export ALIENV_ID=AliPhysics/latest-aliroot5-user
-# Put blender 2.79b in the PATH env var
+# Put Blender 2.79b in the PATH env var
 export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
 
 ##############################
@@ -33,8 +33,8 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
     exit 1
 fi
 
-OPTIONS=c:hdau:m:t:r:b:ipqe
-LONGOPTS=camera:,resolution:,transperency:,duration:,maxparticles:,help,download,default,url:,its,tpc,trd,emcal
+OPTIONS=c:hdau:m:n:t:r:
+LONGOPTS=camera:,resolution:,fps:,transperency:,duration:,maxparticles:,minparticles:,numberofevents:,help,download,sample,url:,its,tpc,trd,emcal
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -55,11 +55,14 @@ eval set -- "$PARSED"
 CAMERA=Overview
 DURATION=10
 RESOLUTION=100
+FPS=24
 TRANSPERENCY=1
-MAX_PARTICLES=0
+MAX_PARTICLES=1000
+MIN_PARTICLES=0
+N_OF_EVENTS=10
 HELP=false
 DOWNLOAD=false
-DEFAULT=false
+SAMPLE=false
 URL=
 ITS=1 # 1 means "build this detector", while 0 means "don't"
 TPC=1
@@ -77,8 +80,8 @@ while true; do
             DOWNLOAD=true
             shift
             ;;
-      -a|--default)
-            DEFAULT=true
+      -a|--sample)
+            SAMPLE=true
             shift
             ;;
       -u|--url)
@@ -89,6 +92,14 @@ while true; do
           MAX_PARTICLES="$2"
           shift 2
           ;;
+      --minparticles)
+          MIN_PARTICLES="$2"
+          shift 2
+          ;;
+      -n|--numberofevents)
+          N_OF_EVENTS="$2"
+          shift 2
+          ;;
       -t|--duration)
           DURATION="$2"
           shift 2
@@ -97,7 +108,11 @@ while true; do
           RESOLUTION="$2"
           shift 2
           ;;
-      -b|--transperency)
+      --fps)
+          FPS="$2"
+          shift 2
+          ;;
+      --transperency)
           TRANSPERENCY="$2"
           shift 2
           ;;
@@ -105,19 +120,19 @@ while true; do
       	  CAMERA="$2"
       	  shift 2
       	  ;;
-      -i|--its)
+      --its)
           ITS=0
           shift
           ;;
-      -p|--tpc)
+      --tpc)
           TPC=0
           shift
           ;;
-      -q|--trd)
+      --trd)
           TRD=0
           shift
           ;;
-      -e|--emcal)
+      --emcal)
           EMCAL=0
           shift
           ;;
@@ -150,27 +165,33 @@ Usage:
      This should be in the format provided by http://opendata.cern.ch.
      See example below.
    -m | --maxparticles VALUE
-     Get only events for which its number of particles is smaller than VALUE.
+     Get only events for which its number of particles does not exceed VALUE.
+   --minparticles VALUE
+     Get only events for which its number of particles is greater than or equal to VALUE.
+   -n | --numberofevents VALUE
+     Set number of events to be animated inside chosen ESD file.
    -t | --duration VALUE
      Set the animation duration in seconds.
    -r | --resolution VALUE
      Set the animation resolution percentage.
-   -b | --transperency VALUE
+   --fps VALUE
+     Set number of frames per second in animation.
+   --transperency VALUE
      Set detector transperency as a number greater than zero,
      where zero is full transperency and 1 is standard transperency
    -c | --camera VALUE
      Which camera to use for the animation, where VALUE
      is a comma-separated list (without spaces)
      Options: Barrel,Forward,Overview (defaults to Barrel)
-   -a | --default
-     Creates a default animation with blender.
-   -i | --its
+   -a | --sample
+     Creates a sample animation with Blender of Event x in ESD file {tal}.
+   --its
      Removes ITS detector from animation
-   -p | --tpc
+   --tpc
      Removes TPC detector from animation
-   -q | --trd
+   ---trd
      Removes TRD detector from animation
-   -e | --emcal
+   --emcal
      Removes EMCal detector from animation
 
 Example:
@@ -192,11 +213,14 @@ else
     echo "-------- Parsed parameters --------"
     echo "URL: $URL"
     echo "Download: $DOWNLOAD"
-    echo "Default: $DEFAULT"
+    echo "Sample: $SAMPLE"
     echo "Transperency Parameter: $TRANSPERENCY"
     echo "Duration: $DURATION"
     echo "Resolution: $RESOLUTION"
+    echo "FPS: $FPS"
     echo "Max particles: ${MAX_PARTICLES}"
+    echo "Min particles: ${MIN_PARTICLES}"
+    echo "Number of events: ${N_OF_EVENTS}"
     echo "Camera: $CAMERA"
     echo "-----------------------------------"
     echo "------------ Detectors ------------"
@@ -252,15 +276,17 @@ if [ "$DOWNLOAD" = "true" ]; then
 fi
 
 ##############################
-# Default synthetic animation#
+# Sample synthetic animation#
 ##############################
-if [ "$DEFAULT" = "true" ]; then
-    echo "Preparing default animation."
+if [ "$SAMPLE" = "true" ]; then
     ##############################
-    # Phase 1: blender animate   #
+    # Phase 1: Blender animate   #
     ##############################
     pushd ${BLENDER_SCRIPT_DIR}
-    blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${CAMERA} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+    for type in $CAMERA; do
+      echo "Preparing sample animation with $type Camera in Blender"
+      blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+    done
     popd
     BLENDER_OUTPUT=.
     mkdir --verbose -p ${BLENDER_OUTPUT}
@@ -270,7 +296,7 @@ if [ "$DEFAULT" = "true" ]; then
 ##############################
 # Animation from file        #
 ##############################
-elif [ "$DEFAULT" = "false" ]; then
+elif [ "$SAMPLE" = "false" ]; then
 
   # Verify if AliESDs.root is here
   ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
@@ -310,6 +336,9 @@ elif [ "$DEFAULT" = "false" ]; then
   # Phase 1: iteration for every event identifier #
   #################################################
 
+  # Event counter for animating no more events than the informed amount
+  EVENT_COUNTER=0
+
   # Get all extracted files
   EXTRACTED_FILES=$(ls -1 esd_detail-event_*.dat | sort --version-sort)
   for FILE_WITH_DATA in $EXTRACTED_FILES; do
@@ -337,15 +366,20 @@ elif [ "$DEFAULT" = "false" ]; then
       NUMBER_OF_PARTICLES=$(wc -l ${BLENDER_SCRIPT_DIR}/$LOCAL_FILE_WITH_DATA | \
                         awk '{ print $1 }')
       echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles"
-      if [[ $NUMBER_OF_PARTICLES -lt $MAX_PARTICLES ]]; then
-        echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES) in blender"
+
+      if [[ $NUMBER_OF_PARTICLES -lt $MAX_PARTICLES+1 && $NUMBER_OF_PARTICLES -gt $MIN_PARTICLES-1 && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
+
+        # Increment event counter
+        EVENT_COUNTER=$EVENT_COUNTER+1
+
+        echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES) in Blender"
 
         pushd ${BLENDER_SCRIPT_DIR}
 
         for type in $CAMERA; do
-              echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in blender"
+              echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in Blender"
 
-              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=24 -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
               # Move generated file to final location
               mv /tmp/blender/* ${BLENDER_OUTPUT}
               echo "${type} for event ${EVENT_UNIQUE_ID} done."
@@ -357,7 +391,14 @@ elif [ "$DEFAULT" = "false" ]; then
         popd
         echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
       else
-        echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
+
+        if [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
+          echo "Too little particles (minimum accepted is $MIN_PARTICLES). Continue."
+        elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
+          echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
+        else
+          echo "Numbers of events set to be animated has already been reached."
+        fi
 
         # Remove non-processed files
         pushd ${BLENDER_SCRIPT_DIR}
