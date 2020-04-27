@@ -236,7 +236,7 @@ void AliAnalysisTaskMyTask::Terminate(Option_t *)
 {
     // terminate
     // called at the END of the analysis (when all events are processed)
-    cout << endl << "Lowest Pz Mean (<Pz>) = " << lowAvgPz << "    at Event " << lowAvgPzEvent;
-    cout << endl << "Highest Pz Mean (<Pz>) = " << highAvgPz << "    at Event " << highAvgPzEvent << endl;
+    cout << endl << endl << "Lowest Pz Mean (<Pz>) = " << lowAvgPz << "    at Event " << lowAvgPzEvent;
+    cout << endl << "Highest Pz Mean (<Pz>) = " << highAvgPz << "    at Event " << highAvgPzEvent << endl << endl;
 }
 //_____________________________________________________________________________

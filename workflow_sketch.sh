@@ -382,47 +382,49 @@ elif [ "$SAMPLE" = "false" ]; then
 
       echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles and average Z momentum $AVERAGE_PZ"
 
-      if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES -ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS && $AVERAGE_PZ -ge $MIN_AVG_PZ ]]; then
+      if (( $(echo "$AVERAGE_PZ >= $MIN_AVG_PZ" |bc -l) )); then
+        if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES -ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
 
-        # Increment event counter
-        EVENT_COUNTER=$EVENT_COUNTER+1
+          # Increment event counter
+          EVENT_COUNTER=$EVENT_COUNTER+1
 
-        echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES tracks) in Blender"
+          echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES tracks) in Blender"
 
-        pushd ${BLENDER_SCRIPT_DIR}
+          pushd ${BLENDER_SCRIPT_DIR}
 
-        for type in $CAMERA; do
-              echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
+          for type in $CAMERA; do
+                echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
 
-              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
-              # Move generated file to final location
-              mv /tmp/blender/* ${BLENDER_OUTPUT}
-              echo "${type} for event ${EVENT_UNIQUE_ID} done."
-        done
+                blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+                # Move generated file to final location
+                mv /tmp/blender/* ${BLENDER_OUTPUT}
+                echo "${type} for event ${EVENT_UNIQUE_ID} done."
+          done
 
-        # Move processed file to final location
-        mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
+          # Move processed file to final location
+          mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
 
-        popd
-        echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
-      else
+          popd
+          echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
+        else
 
-        if [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
-          echo "Too little particles (minimum accepted is $MIN_PARTICLES). Continue."
-        elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
-          echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
-        elif [[ $EVENT_COUNTER -ge $N_OF_EVENTS ]]; then
-          echo "Numbers of events set to be animated has already been reached. Continue."
-        elif [[ $AVERAGE_PZ -lt $MIN_AVG_PZ ]]; then
-          echo "Average Z Momentum too low (minimum accepted is $MIN_AVG_PZ). Continue."
+          if [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
+            echo "Too little particles (minimum accepted is $MIN_PARTICLES). Continue."
+          elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
+            echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
+          elif [[ $EVENT_COUNTER -ge $N_OF_EVENTS ]]; then
+            echo "Numbers of events set to be animated has already been reached. Continue."
+          fi
+
+          # Remove non-processed files
+          pushd ${BLENDER_SCRIPT_DIR}
+          rm $LOCAL_FILE_WITH_DATA
+          popd
+
+          continue
         fi
-
-        # Remove non-processed files
-        pushd ${BLENDER_SCRIPT_DIR}
-        rm $LOCAL_FILE_WITH_DATA
-        popd
-
-        continue
+      else
+        echo "Average Z Momentum too low (minimum accepted is $MIN_AVG_PZ). Continue."
       fi
   done
   popd
