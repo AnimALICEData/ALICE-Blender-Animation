@@ -425,6 +425,11 @@ elif [ "$SAMPLE" = "false" ]; then
         fi
       else
         echo "Average Z Momentum too low (minimum accepted is $MIN_AVG_PZ). Continue."
+
+        # Remove non-processed files
+        pushd ${BLENDER_SCRIPT_DIR}
+        rm $LOCAL_FILE_WITH_DATA
+        popd
       fi
   done
   popd
