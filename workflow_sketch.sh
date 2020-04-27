@@ -34,7 +34,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:hdau:m:n:t:r:
-LONGOPTS=camera:,resolution:,fps:,transperency:,duration:,maxparticles:,minparticles:,numberofevents:,help,download,sample,url:,its,tpc,trd,emcal
+LONGOPTS=camera:,resolution:,fps:,transperency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,help,download,sample,url:,its,tpc,trd,emcal
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -60,6 +60,7 @@ TRANSPERENCY=1
 MAX_PARTICLES=1000
 MIN_PARTICLES=0
 N_OF_EVENTS=10
+MIN_AVG_PZ=0
 HELP=false
 DOWNLOAD=false
 SAMPLE=false
@@ -98,6 +99,10 @@ while true; do
           ;;
       -n|--numberofevents)
           N_OF_EVENTS="$2"
+          shift 2
+          ;;
+      --minavgpz)
+          MIN_AVG_PZ="$2"
           shift 2
           ;;
       -t|--duration)
@@ -165,11 +170,17 @@ Usage:
      This should be in the format provided by http://opendata.cern.ch.
      See example below.
    -m | --maxparticles VALUE
-     Get only events for which its number of particles does not exceed VALUE.
+     Get only events for which its number of particles does not
+     exceed VALUE.
    --minparticles VALUE
-     Get only events for which its number of particles is greater than or equal to VALUE.
+     Get only events for which its number of particles is greater than
+     or equal to VALUE.
    -n | --numberofevents VALUE
      Set number of events to be animated inside chosen ESD file.
+   --minavgpz VALUE
+     Get only events for which its absolute value of average momentum in
+     the z direction is greater than or equal to VALUE. Useful for animating
+     events with 'boosts' of particles to the same side.
    -t | --duration VALUE
      Set the animation duration in seconds.
    -r | --resolution VALUE
@@ -221,6 +232,7 @@ else
     echo "Max particles: ${MAX_PARTICLES}"
     echo "Min particles: ${MIN_PARTICLES}"
     echo "Number of events: ${N_OF_EVENTS}"
+    echo "Min Average Z Momentum: ${MIN_AVG_PZ}"
     echo "Camera: $CAMERA"
     echo "-----------------------------------"
     echo "------------ Detectors ------------"
@@ -284,7 +296,7 @@ if [ "$SAMPLE" = "true" ]; then
     ##############################
     pushd ${BLENDER_SCRIPT_DIR}
     for type in $CAMERA; do
-      echo "Preparing sample animation with $type Camera in Blender"
+      echo "Preparing sample animation with $type in Blender"
       blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
     done
     popd
@@ -365,47 +377,59 @@ elif [ "$SAMPLE" = "false" ]; then
 
       NUMBER_OF_PARTICLES=$(wc -l ${BLENDER_SCRIPT_DIR}/$LOCAL_FILE_WITH_DATA | \
                         awk '{ print $1 }')
-      echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles"
 
-      if [[ $NUMBER_OF_PARTICLES -lt $MAX_PARTICLES+1 && $NUMBER_OF_PARTICLES -gt $MIN_PARTICLES-1 && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
+      AVERAGE_PZ=$(awk 'BEGIN {pzsum=0;n=0} {pzsum+=$8;n++} END {print sqrt(pzsum*pzsum/n/n)}' ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA})
 
-        # Increment event counter
-        EVENT_COUNTER=$EVENT_COUNTER+1
+      echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles and average Z momentum $AVERAGE_PZ"
 
-        echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES) in Blender"
+      if (( $(echo "$AVERAGE_PZ >= $MIN_AVG_PZ" |bc -l) )); then
+        if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES -ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
 
-        pushd ${BLENDER_SCRIPT_DIR}
+          # Increment event counter
+          EVENT_COUNTER=$EVENT_COUNTER+1
 
-        for type in $CAMERA; do
-              echo "Processing ${EVENT_UNIQUE_ID} with $type Camera in Blender"
+          echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES tracks) in Blender"
 
-              blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
-              # Move generated file to final location
-              mv /tmp/blender/* ${BLENDER_OUTPUT}
-              echo "${type} for event ${EVENT_UNIQUE_ID} done."
-        done
+          pushd ${BLENDER_SCRIPT_DIR}
 
-        # Move processed file to final location
-        mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
+          for type in $CAMERA; do
+                echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
 
-        popd
-        echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
-      else
+                blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+                # Move generated file to final location
+                mv /tmp/blender/* ${BLENDER_OUTPUT}
+                echo "${type} for event ${EVENT_UNIQUE_ID} done."
+          done
 
-        if [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
-          echo "Too little particles (minimum accepted is $MIN_PARTICLES). Continue."
-        elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
-          echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
+          # Move processed file to final location
+          mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
+
+          popd
+          echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
         else
-          echo "Numbers of events set to be animated has already been reached."
+
+          if [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
+            echo "Too little particles (minimum accepted is $MIN_PARTICLES). Continue."
+          elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
+            echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
+          elif [[ $EVENT_COUNTER -ge $N_OF_EVENTS ]]; then
+            echo "Numbers of events set to be animated has already been reached. Continue."
+          fi
+
+          # Remove non-processed files
+          pushd ${BLENDER_SCRIPT_DIR}
+          rm $LOCAL_FILE_WITH_DATA
+          popd
+
+          continue
         fi
+      else
+        echo "Average Z Momentum too low (minimum accepted is $MIN_AVG_PZ). Continue."
 
         # Remove non-processed files
         pushd ${BLENDER_SCRIPT_DIR}
         rm $LOCAL_FILE_WITH_DATA
         popd
-
-        continue
       fi
   done
   popd
