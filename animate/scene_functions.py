@@ -49,7 +49,7 @@ def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1]):
         # ADD ITS INNER BARREL
 
         # Material
-        createMaterial("innerITS",R=rgb_v[2],G=0,B=rgb_v[2],shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.7,emit=0,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+        createMaterial("innerITS",R=rgb_v[2],G=0,B=rgb_v[2],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.7,emit=0,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
         # Add Inner ITS
         bpy.ops.mesh.primitive_cylinder_add(radius=0.0421, depth=0.271, view_align=False, enter_editmode=False, location=(0, 0, 0))
@@ -64,7 +64,7 @@ def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1]):
         # ADD ITS OUTER BARREL
 
         # Material
-        createMaterial("outerITS",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.4,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+        createMaterial("outerITS",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.4,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
         # ADD ITS MIDDLE LAYERS
 
@@ -114,7 +114,7 @@ def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1]):
     if detectors[1]:
 
         # Material
-        createMaterial("tpc",R=0,G=rgb_v[0],B=0,shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+        createMaterial("tpc",R=0,G=rgb_v[0],B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
         # Add TPC
         bpy.ops.mesh.primitive_cylinder_add(radius=2.461, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
@@ -129,7 +129,7 @@ def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1]):
     if detectors[2]:
 
         # Material
-        createMaterial("TRD",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.15,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+        createMaterial("TRD",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.15,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
         # Add "hole" to subtract from the middle
         bpy.ops.mesh.primitive_cylinder_add(radius=2.9, depth=6, vertices=18, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
@@ -184,7 +184,7 @@ def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1]):
     if detectors[3]:
 
         # Material
-        createMaterial("emcal",R=rgb_v[1],G=rgb_v[1],B=0,shadows=False,cast_shadows=False,transperency=True,alpha=transp_par*0.05,emit=1.5,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+        createMaterial("emcal",R=rgb_v[1],G=rgb_v[1],B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.05,emit=1.5,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
         # Add cylinder for EMCal
         bpy.ops.mesh.primitive_cylinder_add(radius=4.7, depth=5.1, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))

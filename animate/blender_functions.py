@@ -11,12 +11,12 @@ def subtract(that,fromThat):
     bpy.data.objects[that.name].select = True
     bpy.ops.object.delete()
 
-def createMaterial(name,R,G,B,shadows,cast_shadows,transperency,alpha,emit,specular_alpha,fresnel_factor,fresnel):
+def createMaterial(name,R,G,B,shadows,cast_shadows,transparency,alpha,emit,specular_alpha,fresnel_factor,fresnel):
     bpy.data.materials.new(name=name)
     bpy.data.materials[name].diffuse_color = (R, G, B)
     bpy.data.materials[name].use_shadows = shadows
     bpy.data.materials[name].use_cast_shadows = cast_shadows
-    bpy.data.materials[name].use_transparency = transperency
+    bpy.data.materials[name].use_transparency = transparency
     bpy.data.materials[name].alpha = alpha
     bpy.data.materials[name].emit = emit
     bpy.data.materials[name].specular_alpha = specular_alpha

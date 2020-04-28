@@ -34,7 +34,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:hdau:m:n:t:r:
-LONGOPTS=camera:,resolution:,fps:,transperency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,help,download,sample,url:,its,tpc,trd,emcal
+LONGOPTS=camera:,resolution:,fps:,transparency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,help,download,sample,url:,its,tpc,trd,emcal
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -56,7 +56,7 @@ CAMERA=Overview
 DURATION=10
 RESOLUTION=100
 FPS=24
-TRANSPERENCY=1
+TRANSPARENCY=1
 MAX_PARTICLES=1000
 MIN_PARTICLES=0
 N_OF_EVENTS=10
@@ -117,8 +117,8 @@ while true; do
           FPS="$2"
           shift 2
           ;;
-      --transperency)
-          TRANSPERENCY="$2"
+      --transparency)
+          TRANSPARENCY="$2"
           shift 2
           ;;
       -c|--camera)
@@ -187,20 +187,21 @@ Usage:
      Set the animation resolution percentage.
    --fps VALUE
      Set number of frames per second in animation.
-   --transperency VALUE
-     Set detector transperency as a number greater than zero,
-     where zero is full transperency and 1 is standard transperency
+   --transparency VALUE
+     Set detector transparency as a number greater than zero,
+     where zero is full transparency and 1 is standard transparency
    -c | --camera VALUE
      Which camera to use for the animation, where VALUE
      is a comma-separated list (without spaces)
      Options: Barrel,Forward,Overview (defaults to Barrel)
    -a | --sample
-     Creates a sample animation with Blender of Event x in ESD file {tal}.
+     Creates a sample Blender animation of Event 2 from URL
+     http://opendata.cern.ch/record/1102/files/assets/alice/2010/LHC10h/000139038/ESD/0001/AliESDs.root
    --its
      Removes ITS detector from animation
    --tpc
      Removes TPC detector from animation
-   ---trd
+   --trd
      Removes TRD detector from animation
    --emcal
      Removes EMCal detector from animation
@@ -225,7 +226,7 @@ else
     echo "URL: $URL"
     echo "Download: $DOWNLOAD"
     echo "Sample: $SAMPLE"
-    echo "Transperency Parameter: $TRANSPERENCY"
+    echo "Transparency Parameter: $TRANSPARENCY"
     echo "Duration: $DURATION"
     echo "Resolution: $RESOLUTION"
     echo "FPS: $FPS"
@@ -297,7 +298,7 @@ if [ "$SAMPLE" = "true" ]; then
     pushd ${BLENDER_SCRIPT_DIR}
     for type in $CAMERA; do
       echo "Preparing sample animation with $type in Blender"
-      blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+      blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
     done
     popd
     BLENDER_OUTPUT=.
@@ -395,7 +396,7 @@ elif [ "$SAMPLE" = "false" ]; then
           for type in $CAMERA; do
                 echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
 
-                blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transperency=${TRANSPERENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+                blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
                 # Move generated file to final location
                 mv /tmp/blender/* ${BLENDER_OUTPUT}
                 echo "${type} for event ${EVENT_UNIQUE_ID} done."

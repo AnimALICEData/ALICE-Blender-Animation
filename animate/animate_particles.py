@@ -2,7 +2,7 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transperency=1.2 -stamp_note="Texto no canto" -its=1 -tpc=0 -trd=1 -emcal=0
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 -stamp_note="Texto no canto" -its=1 -tpc=0 -trd=1 -emcal=0
 #
 
 import os
@@ -35,7 +35,7 @@ parser.add_argument('-fps','--fps')
 parser.add_argument('-resolution','--resolution_percent')
 parser.add_argument('-stamp_note','--stamp_note')
 parser.add_argument('-n_event','--n_event')
-parser.add_argument('-transperency','--transp_par')
+parser.add_argument('-transparency','--transp_par')
 parser.add_argument('-its','--its')
 parser.add_argument('-tpc','--tpc')
 parser.add_argument('-trd','--trd')
