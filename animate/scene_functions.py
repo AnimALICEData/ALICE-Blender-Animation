@@ -6,7 +6,7 @@ def init(unique_id,camera_type,transp_par,detectors):
     bcs = bpy.context.scene
 
     # Configure Environment
-    bcs.world.light_settings.use_environment_light = False # True ??
+    bcs.world.light_settings.use_environment_light = False
     bcs.world.light_settings.environment_energy = 0.1
 
     # Configure Stamp
@@ -25,10 +25,11 @@ def init(unique_id,camera_type,transp_par,detectors):
     # Cleanup
     bpy.data.objects.remove(bpy.data.objects['Cube'])
     bpy.data.objects.remove(bpy.data.objects['Camera'])
-    #bpy.data.objects.remove(bpy.data.objects['Lamp'])
+    bpy.data.objects.remove(bpy.data.objects['Lamp'])
 
     # Basic Objects
     addCameras() # Add cameras
+    addLamps() # Add Lamps
 
     if camera_type == "ForwardCamera":
         addALICE_Geometry(True,transp_par,detectors) # ALICE TPC, EMCal, ITS, TRD
@@ -221,6 +222,12 @@ def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1]):
         EMCal.data.materials.append(bpy.data.materials["emcal"])
 
 
+def addLamps():
+    bpy.ops.object.lamp_add(type='POINT', location=(0,0,15))
+    bpy.ops.object.lamp_add(type='POINT', location=(0,0,-15))
+
+
+
 def addCameras():
     # ForwardCamera
     bpy.ops.object.camera_add(location = (0,0.5,20), rotation = (0, 0, 0))
@@ -255,6 +262,7 @@ def createSceneParticles(particles, createTracks = False):
     for type in particle_types:
         bpy.data.materials.new(name=type)
         #bpy.context.object.active_material = (1, 0, 0)
+        bpy.data.materials[type].emit = 0.1
         bpy.data.materials[type].diffuse_color = particle_colors[type]
         bpy.data.materials[type].use_shadows = False
         bpy.data.materials[type].use_cast_shadows = False
@@ -264,7 +272,7 @@ def createSceneParticles(particles, createTracks = False):
     n_particles=len(particles)
     for particle in particles:
         this_type=particle.p_type
-        print("Adding Sphere - Particle " + str(len(blender_particles))+" of "+str(n_particles-1)+" - "+this_type)
+        print("Adding Sphere - Particle " + str(len(blender_particles)+1)+" of "+str(n_particles)+" - "+this_type)
         bpy.ops.mesh.primitive_uv_sphere_add()
         bpy.ops.object.shade_smooth()
         this_particle = bpy.context.object
@@ -279,8 +287,8 @@ def createSceneParticles(particles, createTracks = False):
     blender_tracks=[]
     if createTracks:
             for track in particles:
-                this_type=track.p_type #TO DO: make this not random, but according to file data
-                print("Adding Curve - Track " + str(len(blender_tracks))+" of "+str(n_particles-1)+" - "+this_type)
+                this_type=track.p_type
+                print("Adding Curve - Track " + str(len(blender_tracks)+1)+" of "+str(n_particles)+" - "+this_type)
 
                 # create the Curve Datablock
                 curveTrack = bpy.data.curves.new('CurveTrack', type='CURVE')

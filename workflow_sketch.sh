@@ -193,7 +193,7 @@ Usage:
    -c | --camera VALUE
      Which camera to use for the animation, where VALUE
      is a comma-separated list (without spaces)
-     Options: Barrel,Forward,Overview (defaults to Barrel)
+     Options: Barrel,Forward,Overview (defaults to Overview)
    -a | --sample
      Creates a sample Blender animation of Event 2 from URL
      http://opendata.cern.ch/record/1102/files/assets/alice/2010/LHC10h/000139038/ESD/0001/AliESDs.root
