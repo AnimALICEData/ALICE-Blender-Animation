@@ -323,7 +323,7 @@ def animate(objects, particles, driver):
     bcs = bpy.context.scene
 
     #Animate particles
-    for f in range(1, bcs.frame_end):
+    for f in range(1, bcs.frame_end+1):
         t = driver.delta_t*f
         bcs.frame_current = f
         print("Configuring particles in frame: "+str(f)+" of "+str(bcs.frame_end))
@@ -337,11 +337,11 @@ def animate_tracks(tracks, particles, driver):
     bcs = bpy.context.scene
 
     #Animate tracks
-    for f in range(1, bcs.frame_end):
+    for f in range(1, bcs.frame_end+1):
         t = driver.delta_t*f
         bcs.frame_current = f
         print("Configuring tracks in frame: "+ str(f) +" of "+ str(bcs.frame_end))
-        for point in range(f,bcs.frame_end):
+        for point in range(f,bcs.frame_end+1):
             for i in range(0, len(particles)):
                 #bcs.objects.active=tracks[i]
                 tracks[i].data.splines[0].points[point].keyframe_insert(data_path="co", frame = f)
