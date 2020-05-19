@@ -29,7 +29,11 @@ def init(unique_id,camera_type,transp_par,detectors):
 
     # Basic Objects
     addCameras() # Add cameras
-    addLamps() # Add Lamps
+
+    if camera_type == "OverviewCamera":
+        addOverviewLamps()
+    else:
+        addLamps() # Add Lamps
 
     if camera_type == "ForwardCamera":
         addALICE_Geometry(True,transp_par,detectors) # ALICE TPC, EMCal, ITS, TRD
@@ -226,7 +230,8 @@ def addLamps():
     bpy.ops.object.lamp_add(type='POINT', location=(4,1,6))
     bpy.ops.object.lamp_add(type='POINT', location=(-4,-1,-6))
 
-
+def addOverviewLamps():
+    bpy.ops.object.lamp_add(type='POINT', location=(0,0,6))
 
 def addCameras():
     # ForwardCamera
