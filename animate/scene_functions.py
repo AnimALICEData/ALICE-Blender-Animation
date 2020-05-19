@@ -223,8 +223,8 @@ def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1]):
 
 
 def addLamps():
-    bpy.ops.object.lamp_add(type='POINT', location=(0,0,15))
-    bpy.ops.object.lamp_add(type='POINT', location=(0,0,-15))
+    bpy.ops.object.lamp_add(type='POINT', location=(4,1,6))
+    bpy.ops.object.lamp_add(type='POINT', location=(-4,-1,-6))
 
 
 
@@ -258,11 +258,11 @@ def createSceneParticles(particles, createTracks = False):
     clWhite = (255, 255, 255)
     particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clMagenta, "Kaon": clYellow, "Unknown": clWhite}
 
-    #Create Materials
+    # Create Materials
     for type in particle_types:
         bpy.data.materials.new(name=type)
         #bpy.context.object.active_material = (1, 0, 0)
-        bpy.data.materials[type].emit = 0.1
+        bpy.data.materials[type].emit = 0.05
         bpy.data.materials[type].diffuse_color = particle_colors[type]
         bpy.data.materials[type].use_shadows = False
         bpy.data.materials[type].use_cast_shadows = False

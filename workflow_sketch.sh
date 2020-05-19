@@ -34,7 +34,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:hdau:m:n:t:r:
-LONGOPTS=camera:,resolution:,fps:,transparency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,help,download,sample,url:,its,tpc,trd,emcal
+LONGOPTS=camera:,resolution:,fps:,transparency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,tpc,trd,emcal,blendersave
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -61,6 +61,7 @@ MAX_PARTICLES=1000
 MIN_PARTICLES=0
 N_OF_EVENTS=10
 MIN_AVG_PZ=0
+MIN_AVG_PT=0
 HELP=false
 DOWNLOAD=false
 SAMPLE=false
@@ -69,6 +70,7 @@ ITS=1 # 1 means "build this detector", while 0 means "don't"
 TPC=1
 TRD=1
 EMCAL=1
+BLENDERSAVE=0
 # now enjoy the options in order and nicely split until we see --
 while true; do
     case "$1" in
@@ -105,6 +107,10 @@ while true; do
           MIN_AVG_PZ="$2"
           shift 2
           ;;
+      --minavgpt)
+          MIN_AVG_PT="$2"
+          shift 2
+          ;;
       -t|--duration)
           DURATION="$2"
           shift 2
@@ -139,6 +145,10 @@ while true; do
           ;;
       --emcal)
           EMCAL=0
+          shift
+          ;;
+      --blendersave)
+          BLENDERSAVE=1
           shift
           ;;
         --)
@@ -181,6 +191,10 @@ Usage:
      Get only events for which its absolute value of average momentum in
      the z direction is greater than or equal to VALUE. Useful for animating
      events with 'boosts' of particles to the same side.
+   --minavgpt VALUE
+     Get only events for which its average transversal momentum is
+     greater than or equal to VALUE. Useful for animating events with
+     'boosts' of particles on the xy plane.
    -t | --duration VALUE
      Set the animation duration in seconds.
    -r | --resolution VALUE
@@ -205,6 +219,8 @@ Usage:
      Removes TRD detector from animation
    --emcal
      Removes EMCal detector from animation
+   --blendersave
+     Saves Blender file along with animation clip
 
 Example:
 --------
@@ -234,6 +250,7 @@ else
     echo "Min particles: ${MIN_PARTICLES}"
     echo "Number of events: ${N_OF_EVENTS}"
     echo "Min Average Z Momentum: ${MIN_AVG_PZ}"
+    echo "Min Average Transversal Momentum: ${MIN_AVG_PT}"
     echo "Camera: $CAMERA"
     echo "-----------------------------------"
     echo "------------ Detectors ------------"
@@ -298,7 +315,7 @@ if [ "$SAMPLE" = "true" ]; then
     pushd ${BLENDER_SCRIPT_DIR}
     for type in $CAMERA; do
       echo "Preparing sample animation with $type in Blender"
-      blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
+      blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE}
     done
     popd
     BLENDER_OUTPUT=.
@@ -381,51 +398,64 @@ elif [ "$SAMPLE" = "false" ]; then
 
       AVERAGE_PZ=$(awk 'BEGIN {pzsum=0;n=0} {pzsum+=$8;n++} END {print sqrt(pzsum*pzsum/n/n)}' ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA})
 
-      echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles and average Z momentum $AVERAGE_PZ"
+      AVERAGE_PT=$(awk 'BEGIN {ptsum=0;n=0} {ptsum+=$9;n++} END {print ptsum/n}' ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA})
 
-      if (( $(echo "$AVERAGE_PZ >= $MIN_AVG_PZ" |bc -l) )); then
-        if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES -ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
+      echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles."
+      echo "Average Z momentum: $AVERAGE_PZ"
+      echo "Average transversal momentum $AVERAGE_PT"
 
-          # Increment event counter
-          EVENT_COUNTER=$EVENT_COUNTER+1
+      if (( $(echo "$AVERAGE_PT >= $MIN_AVG_PT" |bc -l) )); then
+        if (( $(echo "$AVERAGE_PZ >= $MIN_AVG_PZ" |bc -l) )); then
+          if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES -ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
 
-          echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES tracks) in Blender"
+            # Increment event counter
+            EVENT_COUNTER=$EVENT_COUNTER+1
 
-          pushd ${BLENDER_SCRIPT_DIR}
+            echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES tracks) in Blender"
 
-          for type in $CAMERA; do
-                echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
+            pushd ${BLENDER_SCRIPT_DIR}
 
-                blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL}
-                # Move generated file to final location
-                mv /tmp/blender/* ${BLENDER_OUTPUT}
-                echo "${type} for event ${EVENT_UNIQUE_ID} done."
-          done
+            for type in $CAMERA; do
+                  echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
 
-          # Move processed file to final location
-          mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
+                  blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE}
+                  # Move generated file to final location
+                  mv /tmp/blender/* ${BLENDER_OUTPUT}
+                  echo "${type} for event ${EVENT_UNIQUE_ID} done."
+            done
 
-          popd
-          echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
-        else
+            # Move processed file to final location
+            mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
 
-          if [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
-            echo "Too little particles (minimum accepted is $MIN_PARTICLES). Continue."
-          elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
-            echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
-          elif [[ $EVENT_COUNTER -ge $N_OF_EVENTS ]]; then
-            echo "Numbers of events set to be animated has already been reached. Continue."
+            popd
+            echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
+          else
+
+            if [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
+              echo "Too little particles (minimum accepted is $MIN_PARTICLES). Continue."
+            elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
+              echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
+            elif [[ $EVENT_COUNTER -ge $N_OF_EVENTS ]]; then
+              echo "Numbers of events set to be animated has already been reached. Continue."
+            fi
+
+            # Remove non-processed files
+            pushd ${BLENDER_SCRIPT_DIR}
+            rm $LOCAL_FILE_WITH_DATA
+            popd
+
+            continue
           fi
+        else
+          echo "Average Z Momentum too low (minimum accepted is $MIN_AVG_PZ). Continue."
 
           # Remove non-processed files
           pushd ${BLENDER_SCRIPT_DIR}
           rm $LOCAL_FILE_WITH_DATA
           popd
-
-          continue
         fi
       else
-        echo "Average Z Momentum too low (minimum accepted is $MIN_AVG_PZ). Continue."
+        echo "Average Transversal Momentum too low (minimum accepted is $MIN_AVG_PT). Continue."
 
         # Remove non-processed files
         pushd ${BLENDER_SCRIPT_DIR}

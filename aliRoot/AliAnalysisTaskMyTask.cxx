@@ -36,6 +36,8 @@
 Int_t esd_event_id = 0; // global variable to store unique event id
 
 Double_t highAvgPz, lowAvgPz, highAvgPzEvent, lowAvgPzEvent; //variables to store info about highest and lowest <Pz> values
+Double_t highAvgPt, highAvgPtEvent; //variables to store info about highest and lowest <Pt> values
+
 
 class AliAnalysisTaskMyTask;    // your analysis class
 
@@ -44,14 +46,14 @@ using namespace std;            // std namespace: so you can do things like 'cou
 ClassImp(AliAnalysisTaskMyTask) // classimp: necessary for root
 
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask() : AliAnalysisTaskSE(),
-    fESD(0), fOutputList(0), fHistPt(0), fHistAvgPz(0), fHistMass(0)
+    fESD(0), fOutputList(0), fHistPt(0), fHistAvgPz(0), fHistAvgPt(0), fHistMass(0)
 {
     // default constructor, don't allocate memory here!
     // this is used by root for IO purposes, it needs to remain empty
 }
 //_____________________________________________________________________________
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask(const char* name) : AliAnalysisTaskSE(name),
-    fESD(0), fOutputList(0), fHistPt(0), fHistAvgPz(0), fHistMass(0)
+    fESD(0), fOutputList(0), fHistPt(0), fHistAvgPz(0), fHistAvgPt(0), fHistMass(0)
 {
     // constructor
     DefineInput(0, TChain::Class());    // define the input of the analysis: in this case we take a 'chain' of events
@@ -95,6 +97,10 @@ void AliAnalysisTaskMyTask::UserCreateOutputObjects()
     // |<Pz>| histogram: absolute value of average Pz (or Pz per track) for each event
     fHistAvgPz = new TH1F("fHistAvgPz", "fHistAvgPz", 100, 0, 10);       // create histogram
     fOutputList->Add(fHistAvgPz);
+
+    // <Pt> histogram: value of average Pt (or Pt per track) for each event
+    fHistAvgPt = new TH1F("fHistAvgPt", "fHistAvgPt", 100, 0, 10);       // create histogram
+    fOutputList->Add(fHistAvgPt);
 
     // my mass histogram
     Double_t fHistMassEdges[12] = {0.0,0.0005,0.0405,0.08,0.12,0.13,0.17,0.48,0.52,0.92,0.96,1.0}; // 11 bins =>> has 11+1 = 12 edges
@@ -155,6 +161,8 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
         Double_t PzSum = 0;
         Double_t absPzSum = 0;
 
+        Double_t PtSum = 0;
+
         for(Int_t i(0); i < iTracks; i++) {                 // loop over all these tracks
 
           		AliESDtrack* track = static_cast<AliESDtrack*>(fESD->GetTrack(i));         // get a track (type AliESDtrack) from the event
@@ -166,18 +174,20 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
 
           		Double_t Px = track->Px();
           		Double_t Py = track->Py();
-          		Double_t Pt = track->Pt(); // transversal momentum, in case we need it
+          		Double_t Pt = track->Pt(); // transversal momentum
           		Double_t Pz = track->Pz();
 
               PzSum += Pz/iTracks; // Pz sum for |<Pz>| histogram
               absPzSum += abs(Pz)/iTracks; //Remember: in C++, abs function overloads
+
+              PtSum += Pt/iTracks; // Pt sum for <Pt> histogram
 
           		Double_t Charge = track->Charge();
 
             	// Add VERTEX (x, y, z), MASS, CHARGE and MOMENTUM (x, y, z) to esd-detail.dat file
             	esd_detail << Vx << " " << Vy << " " << Vz << " ";
             	esd_detail << Mass << " " << Charge << " ";
-            	esd_detail << Px << " " << Py << " " << Pz << endl;
+            	esd_detail << Px << " " << Py << " " << Pz << " " << Pt << endl;
 
             	fHistPt->Fill(Pt);                     // plot the pt value of the track in a histogram
 
@@ -189,11 +199,22 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
             fHistAvgPz->Fill(abs(PzSum));
           }
 
+          if(PtSum != 0) { // This will only fill <Pt> histogram for events with tracks (non-empty)
+            fHistAvgPt->Fill(abs(PtSum));
+          }
+
           if(selectedEventID == 0) {
+
+            // Pz:
             highAvgPzEvent = 0;
             lowAvgPzEvent = 0;
             highAvgPz = PzSum;
             lowAvgPz = PzSum;
+
+            // Pt:
+            highAvgPtEvent = 0;
+            highAvgPt = PtSum;
+
           } else {
 
             if(PzSum>highAvgPz) {
@@ -203,6 +224,11 @@ void AliAnalysisTaskMyTask::export_to_our_ESD_textual_format (Int_t selectedEven
             if(PzSum<lowAvgPz) {
               lowAvgPz = PzSum;
               lowAvgPzEvent = selectedEventID;
+            }
+
+            if(PtSum>highAvgPt) {
+              highAvgPt = PtSum;
+              highAvgPtEvent = selectedEventID;
             }
 
           }
@@ -237,6 +263,9 @@ void AliAnalysisTaskMyTask::Terminate(Option_t *)
     // terminate
     // called at the END of the analysis (when all events are processed)
     cout << endl << endl << "Lowest Pz Mean (<Pz>) = " << lowAvgPz << "    at Event " << lowAvgPzEvent;
-    cout << endl << "Highest Pz Mean (<Pz>) = " << highAvgPz << "    at Event " << highAvgPzEvent << endl << endl;
+    cout << endl << "Highest Pz Mean (<Pz>) = " << highAvgPz << "    at Event " << highAvgPzEvent << endl;
+
+    cout << endl << "Highest Pt Mean (<Pt>) = " << highAvgPt << "    at Event " << highAvgPtEvent << endl << endl;
+
 }
 //_____________________________________________________________________________

@@ -24,6 +24,7 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
         TList*                  fOutputList;    //! output list
         TH1F*                   fHistPt;        //! Pt histogram
         TH1F*                   fHistAvgPz;     //! |<Pz>| histogram
+        TH1F*                   fHistAvgPt;     //! <Pt> histogram
 	      TH1F*			              fHistMass;      //! my particle histogram!! :D
 
 	void export_to_our_ESD_textual_format (Int_t selectedEventID);
