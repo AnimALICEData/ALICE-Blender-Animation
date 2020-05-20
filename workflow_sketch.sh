@@ -34,7 +34,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:hdau:m:n:t:r:
-LONGOPTS=camera:,resolution:,fps:,transparency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,tpc,trd,emcal,blendersave
+LONGOPTS=camera:,resolution:,fps:,transparency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,tpc,trd,emcal,blendersave,picpct:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -71,6 +71,7 @@ TPC=1
 TRD=1
 EMCAL=1
 BLENDERSAVE=0
+PICPCT=80
 # now enjoy the options in order and nicely split until we see --
 while true; do
     case "$1" in
@@ -129,6 +130,10 @@ while true; do
           ;;
       -c|--camera)
       	  CAMERA="$2"
+      	  shift 2
+      	  ;;
+      --picpct)
+      	  PICPCT="$2"
       	  shift 2
       	  ;;
       --its)
@@ -208,6 +213,8 @@ Usage:
      Which camera to use for the animation, where VALUE
      is a comma-separated list (without spaces)
      Options: Barrel,Forward,Overview (defaults to Overview)
+   --picpct VALUE
+     Percentage of animation to take HD picture, saved along with the clip.
    -a | --sample
      Creates a sample Blender animation of Event 2 from URL
      http://opendata.cern.ch/record/1102/files/assets/alice/2010/LHC10h/000139038/ESD/0001/AliESDs.root
@@ -252,6 +259,7 @@ else
     echo "Min Average Z Momentum: ${MIN_AVG_PZ}"
     echo "Min Average Transversal Momentum: ${MIN_AVG_PT}"
     echo "Camera: $CAMERA"
+    echo "Picture Percentage: ${PICPCT}%"
     echo "-----------------------------------"
     echo "------------ Detectors ------------"
     if [[ $ITS = 1 ]]; then
@@ -315,7 +323,7 @@ if [ "$SAMPLE" = "true" ]; then
     pushd ${BLENDER_SCRIPT_DIR}
     for type in $CAMERA; do
       echo "Preparing sample animation with $type in Blender"
-      blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE}
+      blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=5
     done
     popd
     BLENDER_OUTPUT=.
@@ -418,7 +426,7 @@ elif [ "$SAMPLE" = "false" ]; then
             for type in $CAMERA; do
                   echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
 
-                  blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE}
+                  blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=${PICPCT}
                   # Move generated file to final location
                   mv /tmp/blender/* ${BLENDER_OUTPUT}
                   echo "${type} for event ${EVENT_UNIQUE_ID} done."

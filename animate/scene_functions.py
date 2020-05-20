@@ -367,3 +367,11 @@ def animate_tracks(tracks, particles, driver):
 
                 #point.keyframe_insert(data_path="co", frame = i)
                 # https://blender.stackexchange.com/questions/73630/animate-curves-by-changing-spline-data-using-a-python-script
+
+def take_picture(pic_pct,driver):
+    bcs = bpy.context.scene
+
+    bcs.frame_current = int(bcs.frame_end * pic_pct/100)
+    bcs.camera = bpy.data.objects[driver.renderCamera]
+    bpy.ops.render.render()
+    bpy.data.images['Render Result'].save_render(filepath=bcs.render.filepath+".png")

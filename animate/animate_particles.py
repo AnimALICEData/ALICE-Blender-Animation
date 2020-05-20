@@ -2,7 +2,7 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 -stamp_note="Texto no canto" -its=1 -tpc=0 -trd=1 -emcal=0 -blendersave=0
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 -stamp_note="Texto no canto" -its=1 -tpc=0 -trd=1 -emcal=0 -blendersave=0 -picpct=5
 #
 
 import os
@@ -41,6 +41,7 @@ parser.add_argument('-tpc','--tpc')
 parser.add_argument('-trd','--trd')
 parser.add_argument('-emcal','--emcal')
 parser.add_argument('-blendersave','--blendersave')
+parser.add_argument('-picpct','--picpct')
 args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
@@ -60,6 +61,7 @@ transp_par = float(args.transp_par)
 datafile = str(args.datafile)
 detectors = [int(args.its),int(args.tpc),int(args.trd),int(args.emcal)] # Array that stores which detectors to build
 blendersave = int(args.blendersave) # 1 (save Blender file) or 0 (don't)
+picpct = int(args.picpct) # percentage of animation to take picture
 
 #configure output
 outputPath = "/tmp/blender/"
@@ -89,6 +91,7 @@ blender_particles, blender_tracks = createSceneParticles(particles,createTracks 
 #Animate scene using driver
 animate(blender_particles,particles,driver)
 animate_tracks(blender_tracks,particles,driver)
+take_picture(picpct,driver)
 
 bpy.context.scene.frame_current = 24
 
