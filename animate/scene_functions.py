@@ -33,7 +33,10 @@ def init(unique_id,camera_type,transp_par,detectors):
     if camera_type == "OverviewCamera":
         addOverviewLamps()
     else:
-        addLamps() # Add Lamps
+        if camera_type == "AntiOverviewCamera":
+            addAntiOverviewLamps()
+        else:
+            addLamps() # Add Lamps
 
     if camera_type == "ForwardCamera":
         addALICE_Geometry(True,transp_par,detectors) # ALICE TPC, EMCal, ITS, TRD
@@ -45,7 +48,7 @@ def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1]):
     if bright_colors: # Defining sequence of RGB values to fill 'createMaterial' functions below
         rgb_v = [13,13,25,10] # Colors for "ForwardCamera"
     else:
-        rgb_v = [0.5,0.9,1,0.2] # Colors for "OverviewCamera" and "BarrelCamera"
+        rgb_v = [0.5,0.9,1,0.2] # Colors for "OverviewCamera", "AntiOverviewCamera" and "BarrelCamera"
 
 
     # ADD ITS
@@ -233,6 +236,9 @@ def addLamps():
 def addOverviewLamps():
     bpy.ops.object.lamp_add(type='POINT', location=(0,0,6))
 
+def addAntiOverviewLamps():
+    bpy.ops.object.lamp_add(type='POINT', location=(0,0,-6))
+
 def addCameras():
     # ForwardCamera
     bpy.ops.object.camera_add(location = (0,0.5,20), rotation = (0, 0, 0))
@@ -244,6 +250,11 @@ def addCameras():
     # OverviewCamera
     bpy.ops.object.camera_add(location = (23.27182, 10.3968, 22.754), rotation = (-0.071558, 0.879645, 0.305433))
     bpy.context.object.name = "OverviewCamera"
+    bpy.context.object.data.lens = 66.78
+
+    # AntiOverviewCamera
+    bpy.ops.object.camera_add(location = (-24.1218, -10.7468, -22.754), rotation = (-0.10123, 2.27591, 3.44703))
+    bpy.context.object.name = "AntiOverviewCamera"
     bpy.context.object.data.lens = 66.78
 
     # Barrel Camera

@@ -212,7 +212,7 @@ Usage:
    -c | --camera VALUE
      Which camera to use for the animation, where VALUE
      is a comma-separated list (without spaces)
-     Options: Barrel,Forward,Overview (defaults to Overview)
+     Options: Barrel,Forward,Overview,AntiOverview (defaults to Overview)
    --picpct VALUE
      Percentage of animation to take HD picture, saved along with the clip.
    -a | --sample

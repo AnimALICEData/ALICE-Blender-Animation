@@ -66,7 +66,7 @@ picpct = int(args.picpct) # percentage of animation to take picture
 #configure output
 outputPath = "/tmp/blender/"
 fileIdentifier = "PhysicalTrajectories_"
-##  RenderCameras: ["ForwardCamera", "OverviewCamera", "BarrelCamera"]
+##  RenderCameras: ["ForwardCamera", "OverviewCamera", "AntiOverviewCamera", "BarrelCamera"]
 renderCamera= args.render_camera
 
 renderAnimation = True # True
