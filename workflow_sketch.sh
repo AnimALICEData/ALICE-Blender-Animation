@@ -34,7 +34,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:hdau:m:n:t:r:
-LONGOPTS=camera:,resolution:,fps:,transparency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,tpc,trd,emcal,blendersave,picpct:
+LONGOPTS=camera:,mosaic,resolution:,fps:,transparency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,tpc,trd,emcal,blendersave,picpct:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -53,6 +53,7 @@ eval set -- "$PARSED"
 # Parse Parameters           #
 ##############################
 CAMERA=Overview
+MOSAIC=false
 DURATION=10
 RESOLUTION=100
 FPS=24
@@ -81,13 +82,13 @@ while true; do
           break
           ;;
       -d|--download)
-            DOWNLOAD=true
-            shift
-            ;;
+          DOWNLOAD=true
+          shift
+          ;;
       -a|--sample)
-            SAMPLE=true
-            shift
-            ;;
+          SAMPLE=true
+          shift
+          ;;
       -u|--url)
           URL="$2"
             shift 2
@@ -132,6 +133,10 @@ while true; do
       	  CAMERA="$2"
       	  shift 2
       	  ;;
+      --mosaic)
+          MOSAIC=true
+          shift
+          ;;
       --picpct)
       	  PICPCT="$2"
       	  shift 2
@@ -213,6 +218,10 @@ Usage:
      Which camera to use for the animation, where VALUE
      is a comma-separated list (without spaces)
      Options: Barrel,Forward,Overview,AntiOverview (defaults to Overview)
+   --mosaic
+     Make animations in all four available cameras and combine them into
+     a single 2x2 clip containing all perspectives, totalizing five generated
+     .mp4 videos.
    --picpct VALUE
      Percentage of animation to take HD picture, saved along with the clip.
    -a | --sample
@@ -241,6 +250,10 @@ if [[ $CAMERA != "" ]]; then
     CAMERA=$(echo $CAMERA | sed -e 's#,#Camera #g' -e 's#$#Camera#')
 fi
 
+if [[ $MOSAIC == "true" ]]; then
+    CAMERA=$(echo "OverviewCamera BarrelCamera AntiOverviewCamera ForwardCamera")
+fi
+
 if [[ $HELP = "true" ]]; then
     usage
     exit
@@ -259,6 +272,7 @@ else
     echo "Min Average Z Momentum: ${MIN_AVG_PZ}"
     echo "Min Average Transversal Momentum: ${MIN_AVG_PT}"
     echo "Camera: $CAMERA"
+    echo "Mosaic: $MOSAIC"
     echo "Picture Percentage: ${PICPCT}%"
     echo "-----------------------------------"
     echo "------------ Detectors ------------"
@@ -328,7 +342,7 @@ if [ "$SAMPLE" = "true" ]; then
     popd
     BLENDER_OUTPUT=.
     mkdir --verbose -p ${BLENDER_OUTPUT}
-    mv --verbose /tmp/blender ${BLENDER_OUTPUT}
+    mv --verbose /tmp/alice_blender ${BLENDER_OUTPUT}
     echo "Done."
 
 ##############################
@@ -427,10 +441,32 @@ elif [ "$SAMPLE" = "false" ]; then
                   echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
 
                   blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=${PICPCT}
-                  # Move generated file to final location
-                  mv /tmp/blender/* ${BLENDER_OUTPUT}
                   echo "${type} for event ${EVENT_UNIQUE_ID} done."
             done
+
+            if [ "$MOSAIC" = "true" ]; then
+
+              popd
+              pushd /tmp/alice_blender
+
+              # Move animation images to final location
+              mv /tmp/alice_blender/*.png ${BLENDER_OUTPUT}
+
+              # Setting input names for clips in order to make mosaic clip
+              INPUT_ONE=$(ls | awk 'NR==1')
+              INPUT_TWO=$(ls | awk 'NR==2')
+              INPUT_THREE=$(ls | awk 'NR==3')
+              INPUT_FOUR=$(ls | awk 'NR==4')
+
+              ffmpeg -i ${INPUT_FOUR} -i ${INPUT_TWO} -i ${INPUT_THREE} -i ${INPUT_ONE} -filter_complex "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]" -map "[v]" ${EVENT_UNIQUE_ID}_Mosaic.mp4
+
+              popd
+              pushd ${BLENDER_SCRIPT_DIR}
+
+            fi
+
+            # Move generated clips to final location
+            mv /tmp/alice_blender/* ${BLENDER_OUTPUT}
 
             # Move processed file to final location
             mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA

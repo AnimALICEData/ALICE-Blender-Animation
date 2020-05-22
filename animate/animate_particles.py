@@ -64,7 +64,7 @@ blendersave = int(args.blendersave) # 1 (save Blender file) or 0 (don't)
 picpct = int(args.picpct) # percentage of animation to take picture
 
 #configure output
-outputPath = "/tmp/blender/"
+outputPath = "/tmp/alice_blender/"
 fileIdentifier = "PhysicalTrajectories_"
 ##  RenderCameras: ["ForwardCamera", "OverviewCamera", "AntiOverviewCamera", "BarrelCamera"]
 renderCamera= args.render_camera
