@@ -34,7 +34,9 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:hdau:m:n:t:r:
-LONGOPTS=camera:,mosaic,resolution:,fps:,transparency:,duration:,maxparticles:,minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,tpc,trd,emcal,blendersave,picpct:
+LONGOPTS=camera:,mosaic,resolution:,fps:,transparency:,duration:,maxparticles:,\
+minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,\
+tpc,trd,emcal,blendersave,picpct:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -196,19 +198,20 @@ Usage:
      Get only events for which its number of particles is greater than
      or equal to VALUE.
    -n | --numberofevents VALUE
-     Set number of events to be animated inside chosen ESD file.
+     Set number of events to be animated inside chosen ESD file (defaults to 10)
    --minavgpz VALUE
      Get only events for which its absolute value of average momentum in
-     the z direction is greater than or equal to VALUE. Useful for animating
-     events with 'boosts' of particles to the same side.
+     the z direction is greater than or equal to VALUE, in GeV/c. Useful
+     for animating events with 'boosts' of particles to the same side.
    --minavgpt VALUE
      Get only events for which its average transversal momentum is
-     greater than or equal to VALUE. Useful for animating events with
-     'boosts' of particles on the xy plane.
+     greater than or equal to VALUE, in GeV/c. Useful for animating
+     events with 'boosts' of particles on the xy plane.
    -t | --duration VALUE
      Set the animation duration in seconds.
    -r | --resolution VALUE
-     Set the animation resolution percentage.
+     Set the animation resolution percentage, where
+     VALUE must be an integer from 1 to 100.
    --fps VALUE
      Set number of frames per second in animation.
    --transparency VALUE
@@ -223,10 +226,12 @@ Usage:
      a single 2x2 clip containing all perspectives, totalizing five generated
      .mp4 videos.
    --picpct VALUE
-     Percentage of animation to take HD picture, saved along with the clip.
+     Percentage of animation to take HD picture, saved along with the clip,
+     where VALUE must be an integer
    -a | --sample
      Creates a sample Blender animation of Event 2 from URL
-     http://opendata.cern.ch/record/1102/files/assets/alice/2010/LHC10h/000139038/ESD/0001/AliESDs.root
+     http://opendata.cern.ch/record/1102/files/assets/alice/2010/LHC10h/000139\
+038/ESD/0001/AliESDs.root
    --its
      Removes ITS detector from animation
    --tpc
@@ -240,7 +245,8 @@ Usage:
 
 Example:
 --------
-$0 --url http://opendata.cern.ch/record/1103/files/assets/alice/2010/LHC10h/000139173/ESD/0004/AliESDs.root --download
+$0 --url http://opendata.cern.ch/record/1103/files/assets/alice/2010/LHC10h/000\
+139173/ESD/0004/AliESDs.root --download
 
 END
 }
@@ -337,7 +343,11 @@ if [ "$SAMPLE" = "true" ]; then
     pushd ${BLENDER_SCRIPT_DIR}
     for type in $CAMERA; do
       echo "Preparing sample animation with $type in Blender"
-      blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=5
+      blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
+      -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03\
+      -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note=\
+      "opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} \
+      -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=5
     done
     popd
     BLENDER_OUTPUT=.
@@ -418,9 +428,11 @@ elif [ "$SAMPLE" = "false" ]; then
       NUMBER_OF_PARTICLES=$(wc -l ${BLENDER_SCRIPT_DIR}/$LOCAL_FILE_WITH_DATA | \
                         awk '{ print $1 }')
 
-      AVERAGE_PZ=$(awk 'BEGIN {pzsum=0;n=0} {pzsum+=$8;n++} END {print sqrt(pzsum*pzsum/n/n)}' ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA})
+      AVERAGE_PZ=$(awk 'BEGIN {pzsum=0;n=0} {pzsum+=$8;n++} END {print sqrt(pzsum*pzsum/n/n)}'\
+      ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA})
 
-      AVERAGE_PT=$(awk 'BEGIN {ptsum=0;n=0} {ptsum+=$9;n++} END {print ptsum/n}' ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA})
+      AVERAGE_PT=$(awk 'BEGIN {ptsum=0;n=0} {ptsum+=$9;n++} END {print ptsum/n}' \
+      ${BLENDER_SCRIPT_DIR}/${LOCAL_FILE_WITH_DATA})
 
       echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles."
       echo "Average Z momentum: $AVERAGE_PZ"
@@ -428,7 +440,8 @@ elif [ "$SAMPLE" = "false" ]; then
 
       if (( $(echo "$AVERAGE_PT >= $MIN_AVG_PT" |bc -l) )); then
         if (( $(echo "$AVERAGE_PZ >= $MIN_AVG_PZ" |bc -l) )); then
-          if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES -ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
+          if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES \
+-ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
 
             # Increment event counter
             EVENT_COUNTER=$EVENT_COUNTER+1
@@ -440,7 +453,11 @@ elif [ "$SAMPLE" = "false" ]; then
             for type in $CAMERA; do
                   echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
 
-                  blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}" -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS} -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=${PICPCT}
+                  blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
+                  -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}"\
+                   -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION}\
+                   -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS}\
+                   -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=${PICPCT}
                   echo "${type} for event ${EVENT_UNIQUE_ID} done."
             done
 
@@ -458,7 +475,9 @@ elif [ "$SAMPLE" = "false" ]; then
               INPUT_THREE=$(ls | awk 'NR==3')
               INPUT_FOUR=$(ls | awk 'NR==4')
 
-              ffmpeg -i ${INPUT_FOUR} -i ${INPUT_TWO} -i ${INPUT_THREE} -i ${INPUT_ONE} -filter_complex "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]" -map "[v]" ${EVENT_UNIQUE_ID}_Mosaic.mp4
+              ffmpeg -i ${INPUT_FOUR} -i ${INPUT_TWO} -i ${INPUT_THREE} -i ${INPUT_ONE} -filter_complex\
+               "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"\
+               -map "[v]" ${EVENT_UNIQUE_ID}_Mosaic.mp4
 
               popd
               pushd ${BLENDER_SCRIPT_DIR}
