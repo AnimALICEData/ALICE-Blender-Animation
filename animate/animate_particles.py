@@ -2,7 +2,9 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 -stamp_note="Texto no canto" -its=1 -tpc=0 -trd=1 -emcal=0 -blendersave=0 -picpct=5
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" \
+#   -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 \
+#   -stamp_note="Texto no canto" -its=1 -tpc=0 -trd=1 -detailed_tpc=1 -emcal=0 -blendersave=0 -picpct=5 -tpc_blender_path="/home/files/blender"
 #
 
 import os
@@ -42,6 +44,8 @@ parser.add_argument('-trd','--trd')
 parser.add_argument('-emcal','--emcal')
 parser.add_argument('-blendersave','--blendersave')
 parser.add_argument('-picpct','--picpct')
+parser.add_argument('-tpc_blender_path','--tpc_blender_path')
+parser.add_argument('-detailed_tpc','--detailed_tpc')
 args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
@@ -59,9 +63,10 @@ resolution_percent = int(args.resolution_percent)
 stamp_note = args.stamp_note
 transp_par = float(args.transp_par)
 datafile = str(args.datafile)
-detectors = [int(args.its),int(args.tpc),int(args.trd),int(args.emcal)] # Array that stores which detectors to build
+detectors = [int(args.its),int(args.tpc),int(args.trd),int(args.emcal),int(args.detailed_tpc)] # Array that stores which detectors to build
 blendersave = int(args.blendersave) # 1 (save Blender file) or 0 (don't)
 picpct = int(args.picpct) # percentage of animation to take picture
+tpc_blender_path = str(args.tpc_blender_path) # path to 'animate' directory, where .blend file for detailed TPC is saved
 
 #configure output
 outputPath = "/tmp/alice_blender/"
@@ -84,7 +89,7 @@ driver = dataDriver("AlirootFileGenerator",n_event,datafile) # Simple dataDriver
 driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
 
 ### Build scene
-init(stamp_note,renderCamera,transp_par,detectors) # Cleanup, addCameras, addALICE_TPC
+init(stamp_note,renderCamera,transp_par,detectors,tpc_blender_path) # Cleanup, addCameras, addALICE_TPC
 particles = driver.getParticles()
 blender_particles, blender_tracks = createSceneParticles(particles,createTracks = True) # Create blender objects - one sphere per particle
 

@@ -36,7 +36,7 @@ fi
 OPTIONS=c:hdau:m:n:t:r:
 LONGOPTS=camera:,mosaic,resolution:,fps:,transparency:,duration:,maxparticles:,\
 minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,\
-tpc,trd,emcal,blendersave,picpct:
+tpc,detailedtpc,trd,emcal,blendersave,picpct:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -71,6 +71,7 @@ SAMPLE=false
 URL=
 ITS=1 # 1 means "build this detector", while 0 means "don't"
 TPC=1
+DETAILED_TPC=0
 TRD=1
 EMCAL=1
 BLENDERSAVE=0
@@ -149,6 +150,10 @@ while true; do
           ;;
       --tpc)
           TPC=0
+          shift
+          ;;
+      --detailedtpc)
+          DETAILED_TPC=1
           shift
           ;;
       --trd)
@@ -234,6 +239,8 @@ Usage:
 038/ESD/0001/AliESDs.root
    --its
      Removes ITS detector from animation
+   --detailedtpc
+     Includes more detailed version of TPC in animation
    --tpc
      Removes TPC detector from animation
    --trd
@@ -285,8 +292,12 @@ else
     if [[ $ITS = 1 ]]; then
       echo "Building ITS"
     fi
-    if [[ $TPC = 1 ]]; then
-      echo "Building TPC"
+    if [[ $DETAILED_TPC = 1 ]]; then
+      echo "Building detailed TPC"
+    else
+      if [[ $TPC = 1 ]]; then
+        echo "Building TPC"
+      fi
     fi
     if [[ $TRD = 1 ]]; then
       echo "Building TRD"
@@ -347,7 +358,8 @@ if [ "$SAMPLE" = "true" ]; then
       -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03\
       -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note=\
       "opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} \
-      -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=5
+      -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
+      -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}
     done
     popd
     BLENDER_OUTPUT=.
@@ -457,7 +469,8 @@ elif [ "$SAMPLE" = "false" ]; then
                   -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}"\
                    -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION}\
                    -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS}\
-                   -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -blendersave=${BLENDERSAVE} -picpct=${PICPCT}
+                   -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
+                  -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}
                   echo "${type} for event ${EVENT_UNIQUE_ID} done."
             done
 
