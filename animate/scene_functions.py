@@ -2,7 +2,7 @@
 filename = os.path.join(os.path.basename(bpy.data.filepath), "blender_functions.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
-def init(unique_id,camera_type,transp_par,detectors,blender_path):
+def init(unique_id,transp_par,detectors,blender_path):
     bcs = bpy.context.scene
 
     # Configure Environment
@@ -29,26 +29,16 @@ def init(unique_id,camera_type,transp_par,detectors,blender_path):
 
     # Basic Objects
     addCameras() # Add cameras
+    addLamps() # Add Lamps
 
-    if camera_type == "OverviewCamera":
-        addOverviewLamps()
-    else:
-        if camera_type == "AntiOverviewCamera":
-            addAntiOverviewLamps()
-        else:
-            addLamps() # Add Lamps
+    addALICE_Geometry(False,transp_par,detectors,blender_path)
 
-    if camera_type == "ForwardCamera":
-        addALICE_Geometry(True,transp_par,detectors,blender_path) # ALICE TPC, EMCal, ITS, TRD
-    else:
-        addALICE_Geometry(False,transp_par,detectors,blender_path)
-
-def addALICE_Geometry(bright_colors=True, transp_par=1.0, detectors=[1,1,1,1,0], blender_path="/home/"):
+def addALICE_Geometry(bright_colors=False, transp_par=1.0, detectors=[1,1,1,1,0], blender_path="/home/"):
 
     if bright_colors: # Defining sequence of RGB values to fill 'createMaterial' functions below
-        rgb_v = [13,13,25,10] # Colors for "ForwardCamera"
+        rgb_v = [13,13,25,10] # Colors for brighter detector
     else:
-        rgb_v = [0.5,0.9,1,0.2] # Colors for "OverviewCamera", "AntiOverviewCamera" and "BarrelCamera"
+        rgb_v = [0.5,0.9,1,0.2] # Colors for standard geometry
 
 
     if detectors[0]:
@@ -258,13 +248,7 @@ def addALICE_EMCal(transp_par,rgb_v):
 
 def addLamps():
     bpy.ops.object.lamp_add(type='POINT', location=(4,1,6))
-    bpy.ops.object.lamp_add(type='POINT', location=(-4,-1,-6))
-
-def addOverviewLamps():
-    bpy.ops.object.lamp_add(type='POINT', location=(0,0,6))
-
-def addAntiOverviewLamps():
-    bpy.ops.object.lamp_add(type='POINT', location=(0,0,-6))
+    bpy.ops.object.lamp_add(type='POINT', location=(0,0,-8))
 
 def addCameras():
     # ForwardCamera
@@ -279,14 +263,14 @@ def addCameras():
     bpy.context.object.name = "OverviewCamera"
     bpy.context.object.data.lens = 66.78
 
-    # AntiOverviewCamera
-    bpy.ops.object.camera_add(location = (-24.1218, -10.7468, -22.754), rotation = (-0.10123, 2.27591, 3.44703))
-    bpy.context.object.name = "AntiOverviewCamera"
-    bpy.context.object.data.lens = 66.78
-
     # Barrel Camera
     bpy.ops.object.camera_add(location = (6, 0, 0), rotation = (0, 1.5708, 0))
     bpy.context.object.name = "BarrelCamera"
+
+    # Side Camera
+    bpy.ops.object.camera_add(location = (6, 0, 0), rotation = (0, 1.5708, 0))
+    bpy.context.object.name = "SideCamera"
+    bpy.context.object.data.lens = 9
 
 # Function that creates Blender Objects from input list of particles.
 ## Returns a list of blender objects
@@ -405,11 +389,3 @@ def animate_tracks(tracks, particles, driver):
 
                 #point.keyframe_insert(data_path="co", frame = i)
                 # https://blender.stackexchange.com/questions/73630/animate-curves-by-changing-spline-data-using-a-python-script
-
-def take_picture(pic_pct,driver):
-    bcs = bpy.context.scene
-
-    bcs.frame_current = int(bcs.frame_end * pic_pct/100)
-    bcs.camera = bpy.data.objects[driver.renderCamera]
-    bpy.ops.render.render()
-    bpy.data.images['Render Result'].save_render(filepath=bcs.render.filepath+".png")

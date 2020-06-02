@@ -34,7 +34,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:hdau:m:n:t:r:
-LONGOPTS=camera:,mosaic,resolution:,fps:,transparency:,duration:,maxparticles:,\
+LONGOPTS=cameras:,mosaic,resolution:,fps:,transparency:,duration:,maxparticles:,\
 minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,\
 tpc,detailedtpc,trd,emcal,blendersave,picpct:
 
@@ -54,7 +54,7 @@ eval set -- "$PARSED"
 ##############################
 # Parse Parameters           #
 ##############################
-CAMERA=Overview
+CAMERAS=Overview
 MOSAIC=false
 DURATION=10
 RESOLUTION=100
@@ -132,8 +132,8 @@ while true; do
           TRANSPARENCY="$2"
           shift 2
           ;;
-      -c|--camera)
-      	  CAMERA="$2"
+      -c|--cameras)
+      	  CAMERAS="$2"
       	  shift 2
       	  ;;
       --mosaic)
@@ -222,10 +222,10 @@ Usage:
    --transparency VALUE
      Set detector transparency as a number greater than zero,
      where zero is full transparency and 1 is standard transparency
-   -c | --camera VALUE
-     Which camera to use for the animation, where VALUE
+   -c | --cameras VALUE
+     Which cameras to use for the animation, where VALUE
      is a comma-separated list (without spaces)
-     Options: Barrel,Forward,Overview,AntiOverview (defaults to Overview)
+     Options: Barrel,Side,Forward,Overview (defaults to Overview)
    --mosaic
      Make animations in all four available cameras and combine them into
      a single 2x2 clip containing all perspectives, totalizing five generated
@@ -259,12 +259,12 @@ END
 }
 
 # Fix CAMERA to be accepted by the for loop
-if [[ $CAMERA != "" ]]; then
-    CAMERA=$(echo $CAMERA | sed -e 's#,#Camera #g' -e 's#$#Camera#')
+if [[ $CAMERAS != "" ]]; then
+    CAMERAS=$(echo $CAMERAS | sed -e 's#,#Camera #g' -e 's#$#Camera#')
 fi
 
 if [[ $MOSAIC == "true" ]]; then
-    CAMERA=$(echo "OverviewCamera BarrelCamera AntiOverviewCamera ForwardCamera")
+    CAMERAS=$(echo "OverviewCamera BarrelCamera SideCamera ForwardCamera")
 fi
 
 if [[ $HELP = "true" ]]; then
@@ -284,7 +284,7 @@ else
     echo "Number of events: ${N_OF_EVENTS}"
     echo "Min Average Z Momentum: ${MIN_AVG_PZ}"
     echo "Min Average Transversal Momentum: ${MIN_AVG_PT}"
-    echo "Camera: $CAMERA"
+    echo "Cameras: $CAMERAS"
     echo "Mosaic: $MOSAIC"
     echo "Picture Percentage: ${PICPCT}%"
     echo "-----------------------------------"
@@ -352,15 +352,15 @@ if [ "$SAMPLE" = "true" ]; then
     # Phase 1: Blender animate   #
     ##############################
     pushd ${BLENDER_SCRIPT_DIR}
-    for type in $CAMERA; do
-      echo "Preparing sample animation with $type in Blender"
-      blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
-      -duration=${DURATION} -camera=${type} -datafile="d-esd-detail.dat" -simulated_t=0.03\
-      -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note=\
-      "opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} \
-      -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
-      -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}
-    done
+    echo "Preparing sample animation in Blender"
+
+    blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
+    -duration=${DURATION} -cameras="${CAMERAS}" -datafile="d-esd-detail.dat" -simulated_t=0.03\
+    -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note=\
+    "opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} \
+    -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
+    -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}
+
     popd
     BLENDER_OUTPUT=.
     mkdir --verbose -p ${BLENDER_OUTPUT}
@@ -462,17 +462,17 @@ elif [ "$SAMPLE" = "false" ]; then
 
             pushd ${BLENDER_SCRIPT_DIR}
 
-            for type in $CAMERA; do
-                  echo "Processing ${EVENT_UNIQUE_ID} with $type in Blender"
 
-                  blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
-                  -duration=${DURATION} -camera=${type} -datafile="${LOCAL_FILE_WITH_DATA}"\
-                   -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION}\
-                   -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS}\
-                   -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
-                  -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}
-                  echo "${type} for event ${EVENT_UNIQUE_ID} done."
-            done
+            echo "Processing ${EVENT_UNIQUE_ID} in Blender"
+
+            blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
+            -duration=${DURATION} -cameras="${CAMERAS}" -datafile="${LOCAL_FILE_WITH_DATA}"\
+             -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION}\
+             -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS}\
+             -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
+            -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}
+            echo "Event ${EVENT_UNIQUE_ID} done."
+
 
             if [ "$MOSAIC" = "true" ]; then
 

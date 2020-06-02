@@ -2,7 +2,7 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -camera="BarrelCamera" \
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -cameras="BarrelCamera OverviewCamera" \
 #   -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 \
 #   -stamp_note="Texto no canto" -its=1 -tpc=0 -trd=1 -detailed_tpc=1 -emcal=0 -blendersave=0 -picpct=5 -tpc_blender_path="/home/files/blender"
 #
@@ -30,7 +30,7 @@ parser = ArgumentParserForBlender()
 
 parser.add_argument('-radius','--r_part')
 parser.add_argument('-duration','--duration')
-parser.add_argument('-camera','--render_camera')
+parser.add_argument('-cameras','--render_cameras')
 parser.add_argument('-datafile','--datafile')
 parser.add_argument('-simulated_t','--simulated_t')
 parser.add_argument('-fps','--fps')
@@ -68,11 +68,26 @@ blendersave = int(args.blendersave) # 1 (save Blender file) or 0 (don't)
 picpct = int(args.picpct) # percentage of animation to take picture
 tpc_blender_path = str(args.tpc_blender_path) # path to 'animate' directory, where .blend file for detailed TPC is saved
 
+# Create array with cameras:
+cams_string = str(args.render_cameras)
+cams_list = []
+j=0
+last_space=0
+for digit in range(0,len(cams_string)):
+    if cams_string[digit] == ' ':
+        cam = ""
+        for i in range(j,digit):
+            cam += cams_string[i]
+        cams_list.append(cam)
+        j=digit+1
+cam = ""
+for i in range(j,len(cams_string)):
+    cam += cams_string[i]
+cams_list.append(cam)
+
 #configure output
 outputPath = "/tmp/alice_blender/"
 fileIdentifier = "PhysicalTrajectories_"
-##  RenderCameras: ["ForwardCamera", "OverviewCamera", "AntiOverviewCamera", "BarrelCamera"]
-renderCamera= args.render_camera
 
 renderAnimation = True # True
 saveBlenderFile = blendersave # False
@@ -81,29 +96,28 @@ saveBlenderFile = blendersave # False
 # Create and configure animation driver
 n_particles = 100 # Event Multiplicity
 driver = genDriver("GaussianGenerator",n_particles,3.0) # Simple genDriver takes two parameters: number of particles and Gaussian width
-driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
+driver.configure(cams_list, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
 """
 
 # Create and configure animation driver
 driver = dataDriver("AlirootFileGenerator",n_event,datafile) # Simple dataDriver
-driver.configure(renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
+driver.configure(cams_list, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
 
 ### Build scene
-init(stamp_note,renderCamera,transp_par,detectors,tpc_blender_path) # Cleanup, addCameras, addALICE_TPC
+init(stamp_note,transp_par,detectors,tpc_blender_path) # Cleanup, addCameras, addALICE_TPC
 particles = driver.getParticles()
 blender_particles, blender_tracks = createSceneParticles(particles,createTracks = True) # Create blender objects - one sphere per particle
 
 #Animate scene using driver
 animate(blender_particles,particles,driver)
 animate_tracks(blender_tracks,particles,driver)
-take_picture(picpct,driver)
 
 bpy.context.scene.frame_current = 24
 
 ## Save blender file
-if saveBlenderFile: bpy.ops.wm.save_as_mainfile(filepath=outputPath+fileIdentifier+"AlirootFileGenerator_"+datafile+"_Event_"+n_event+"_"+renderCamera+".blend")
+if saveBlenderFile: bpy.ops.wm.save_as_mainfile(filepath=outputPath+fileIdentifier+"AlirootFileGenerator_"+datafile+"_Event_"+n_event+".blend")
 
 # Render animation
-if renderAnimation: driver.render()
+if renderAnimation: driver.render(picpct)
 
 #exit()

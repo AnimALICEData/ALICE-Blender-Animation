@@ -11,8 +11,8 @@ exec(compile(open(filename).read(), filename, 'exec'))
 class animationDriver:
     def __init__(self,name):
         self.name = name
-    def configure(self, renderCamera, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent=100):
-        self.renderCamera=renderCamera
+    def configure(self, renderCameras, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent=100):
+        self.renderCameras=renderCameras # array with cameras to render animation with
         self.duration=duration  # total video duration in seconds
         self.fps=fps
         self.simulated_t=simulated_t # total simulated time in microseconds. (0.01 -> light travels ~ 3 m)
@@ -26,9 +26,24 @@ class animationDriver:
         bcs.frame_start = 0
         bcs.frame_end = self.N_frames
 
-    def render(self):
-        bpy.context.scene.camera = bpy.data.objects[self.renderCamera]
-        bpy.ops.render.render(animation=True)
+    def render(self,pic_pct):
+        bcs = bpy.context.scene
+
+        self.output_prefix=[]
+        for c in range(0,len(self.renderCameras)):
+
+            # Set specific output info
+            self.output_prefix.append(self.fileIdentifier+str(self.xpixels)+"px_"+self.name+self.renderCameras[c])
+            bcs.render.filepath = "/tmp/alice_blender/"+self.output_prefix[c]
+            bcs.camera = bpy.data.objects[self.renderCameras[c]]
+
+            # Take picture of animation
+            bcs.frame_current = int(bcs.frame_end * pic_pct/100)
+            bpy.ops.render.render()
+            bpy.data.images['Render Result'].save_render(filepath=bcs.render.filepath+".png")
+
+            # Render actual animation
+            bpy.ops.render.render(animation=True)
 
     def configureOutput(self):
         # Configure Output
@@ -45,9 +60,7 @@ class animationDriver:
         bcsr.ffmpeg.buffersize = 224 * 8
         bcsr.ffmpeg.packetsize = 2048
         bcsr.ffmpeg.muxrate = 10080000
-        xpixels = int(bcsr.resolution_percentage * bcsr.resolution_x / 100)
-        output_prefix=self.fileIdentifier+str(xpixels)+"px_"+self.name+self.renderCamera
-        bcsr.filepath = "/tmp/alice_blender/"+output_prefix
+        self.xpixels = int(bcsr.resolution_percentage * bcsr.resolution_x / 100)
 
 class genDriver(animationDriver): # A driver for particle generators
     def __init__(self,name,N_particles, par1):
