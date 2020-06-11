@@ -3,8 +3,8 @@
 #
 #   For console only rendering (example):
 #   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 -cameras="BarrelCamera OverviewCamera" \
-#   -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 \
-#   -stamp_note="Texto no canto" -its=1 -tpc=0 -trd=1 -detailed_tpc=1 -emcal=0 -blendersave=0 -picpct=5 -tpc_blender_path="/home/files/blender"
+#   -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 -stamp_note="Texto no canto"\
+#    -its=1 -tpc=0 -trd=1 -detailed_tpc=1 -emcal=0 -blendersave=0 -picpct=5 -tpc_blender_path="/home/files/blender" -output_path="/tmp/blender"
 #
 
 import os
@@ -46,6 +46,7 @@ parser.add_argument('-blendersave','--blendersave')
 parser.add_argument('-picpct','--picpct')
 parser.add_argument('-tpc_blender_path','--tpc_blender_path')
 parser.add_argument('-detailed_tpc','--detailed_tpc')
+parser.add_argument('-output_path','--output_path')
 args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
@@ -85,11 +86,11 @@ for i in range(j,len(cams_string)):
     cam += cams_string[i]
 cams_list.append(cam)
 
-#configure output
-outputPath = "/tmp/alice_blender/"
+# Configure Output
+outputPath = str(args.output_path)+"/"
 fileIdentifier = "PhysicalTrajectories_"
 
-renderAnimation = True # True
+renderAnimation = False # True
 saveBlenderFile = blendersave # False
 
 """
