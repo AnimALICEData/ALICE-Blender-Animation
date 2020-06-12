@@ -19,6 +19,17 @@ export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
 # Progress log file
 export PROGRESS_LOG=$(pwd)/progress.log
 
+if [[ -f $PROGRESS_LOG ]]; then
+  if grep -q "JOB FINISHED" $PROGRESS_LOG; then
+    rm $PROGRESS_LOG
+  fi
+fi
+
+# Define a timestamp function
+timestamp() {
+  date +"%y-%m-%d %T $1"
+}
+
 ##############################
 # Command-line options       #
 ##############################
@@ -338,10 +349,10 @@ if [ "$DOWNLOAD" = "true" ]; then
         exit
     fi
 
-    if ! grep -q "DOWNLOAD NOT DONE" $PROGRESS_LOG; then
+    if ! grep -q "ESD DOWNLOAD DONE" $PROGRESS_LOG; then
       echo "Downloading data."
       wget $URL
-      echo "ESD DOWNLOAD DONE" >> $PROGRESS_LOG
+      timestamp "ESD DOWNLOAD DONE" >> $PROGRESS_LOG
     fi
 
     ######################################
@@ -386,7 +397,7 @@ if [ "$SAMPLE" = "true" ]; then
 ##############################
 elif [ "$SAMPLE" = "false" ]; then
 
-  if ! grep -q "DATA ANALYSIS for" $PROGRESS_LOG; then
+  if ! grep -q "DATA ANALYSIS FINISHED" $PROGRESS_LOG; then
 
     # Verify if AliESDs.root is here
     ALIESD_ROOT_FILE=$(pwd)/AliESDs.root
@@ -416,7 +427,7 @@ elif [ "$SAMPLE" = "false" ]; then
     fi
 
     popd
-    echo "DATA ANALYSIS for ${UNIQUEID} FINISHED" >> $PROGRESS_LOG
+    timestamp "${UNIQUEID} - DATA ANALYSIS FINISHED" >> $PROGRESS_LOG
 
   else
     if [ "$DOWNLOAD" = "false" ]; then
@@ -429,20 +440,20 @@ elif [ "$SAMPLE" = "false" ]; then
     fi
   fi
 
-  if ! grep -q "ANIMATION DIRECTORY" $PROGRESS_LOG ; then
+  if ! grep -q "${UNIQUEID} - ANIMATION DIRECTORY CREATED" $PROGRESS_LOG ; then
 
     # Create directory where animations will be saved
     BLENDER_OUTPUT=$(pwd)/$UNIQUEID
     mkdir --verbose -p ${BLENDER_OUTPUT}
 
-    echo "ANIMATION DIRECTORY ${UNIQUEID} CREATED" >> $PROGRESS_LOG
+    timestamp "${UNIQUEID} - ANIMATION DIRECTORY CREATED" >> $PROGRESS_LOG
   else
     BLENDER_OUTPUT=$(pwd)/$UNIQUEID
   fi
 
   pushd ${ALIROOT_SCRIPT_DIR} # push back to aliroot directory
 
-  if ! grep -q "MOVED to animation directory" $PROGRESS_LOG; then
+  if ! grep -q "${UNIQUEID} - DATA ANALYSIS FILES MOVED to animation directory" $PROGRESS_LOG; then
     #################################################
     # Phase 1: iteration for every event identifier #
     #################################################
@@ -463,23 +474,23 @@ elif [ "$SAMPLE" = "false" ]; then
 
     done
 
-    echo "DATA ANALYSIS FILES of ${UNIQUEID} MOVED to animation directory" >> $PROGRESS_LOG
+    timestamp "${UNIQUEID} - DATA ANALYSIS FILES MOVED to animation directory" >> $PROGRESS_LOG
 
   fi
 
   popd
   pushd ${BLENDER_SCRIPT_DIR}
 
-  if ! grep -q "CREATED EVENT COUNTER FILE" $PROGRESS_LOG; then
+  if ! grep -q "${UNIQUEID} - CREATED EVENT COUNTER FILE" $PROGRESS_LOG; then
 
     # Event counter for animating no more events than the informed amount
     EVENT_COUNTER=0
     echo "$EVENT_COUNTER" > event_counter.txt
-    echo "CREATED EVENT COUNTER FILE" >> $PROGRESS_LOG
+    timestamp "${UNIQUEID} - CREATED EVENT COUNTER FILE" >> $PROGRESS_LOG
 
   fi
 
-  if ! grep -q "DATA FILES RENAMED according to UNIQUEID" $PROGRESS_LOG; then
+  if ! grep -q "${UNIQUEID} - DATA FILES RENAMED according to UNIQUEID" $PROGRESS_LOG; then
 
     EXTRACTED_FILES=$(ls -1 esd_detail-event_*.dat | sort --version-sort)
 
@@ -496,7 +507,7 @@ elif [ "$SAMPLE" = "false" ]; then
 
     done
 
-    echo "DATA FILES RENAMED according to UNIQUEID ${UNIQUEID}" >> $PROGRESS_LOG
+    timestamp "${UNIQUEID} - DATA FILES RENAMED according to UNIQUEID" >> $PROGRESS_LOG
 
   fi
 
@@ -535,7 +546,7 @@ elif [ "$SAMPLE" = "false" ]; then
         if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES \
 -ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
 
-          if ! grep -q "Scene from ${EVENT_UNIQUE_ID} READY." $PROGRESS_LOG; then
+          if ! grep -q "${UNIQUEID} - Event ${EVENT_ID} - SCENE READY." $PROGRESS_LOG; then
 
             echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES tracks) in Blender"
 
@@ -548,26 +559,31 @@ elif [ "$SAMPLE" = "false" ]; then
              -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
             -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}\
             -output_path="${BLENDER_OUTPUT}"
-            echo "Scene from ${EVENT_UNIQUE_ID} READY." >> $PROGRESS_LOG
+            timestamp "${UNIQUEID} - Event ${EVENT_ID} - SCENE READY." >> $PROGRESS_LOG
 
           fi
 
 
           for type in $CAMERAS; do
 
-            if ! grep -q "${type} for $EVENT_UNIQUE_ID FINISHED" $PROGRESS_LOG; then
+            if ! grep -q "${UNIQUEID} - Event ${EVENT_ID} - ${type} FINISHED" $PROGRESS_LOG; then
               blender -noaudio --background -P render.py -- -cam ${type} -datafile\
                "${LOCAL_FILE_WITH_DATA}" -n_event ${EVENT_ID} -pic_pct ${PICPCT} -output_path "${BLENDER_OUTPUT}"
 
-              echo "${type} for $EVENT_UNIQUE_ID FINISHED" >> $PROGRESS_LOG
+              timestamp "${UNIQUEID} - Event ${EVENT_ID} - ${type} FINISHED" >> $PROGRESS_LOG
             fi
 
           done
 
           if [ "$MOSAIC" = "true" ]; then
 
-            if ! grep -q "MOSAIC for $EVENT_UNIQUE_ID FINISHED" $PROGRESS_LOG; then
+            if ! grep -q "${UNIQUEID} - Event ${EVENT_ID} - MOSAIC FINISHED" $PROGRESS_LOG; then
               pushd ${BLENDER_OUTPUT}
+
+              # Delete existing incomplete .mp4 file
+              if [[ -f ${EVENT_UNIQUE_ID}_Mosaic.mp4 ]]; then
+                rm ${EVENT_UNIQUE_ID}_Mosaic.mp4
+              fi
 
               # Setting input names for clips in order to make mosaic clip
               INPUT_ONE=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==1')
@@ -579,17 +595,17 @@ elif [ "$SAMPLE" = "false" ]; then
                "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"\
                -map "[v]" ${EVENT_UNIQUE_ID}_Mosaic.mp4
 
-              echo "MOSAIC for $EVENT_UNIQUE_ID FINISHED" >> $PROGRESS_LOG
+              timestamp "${UNIQUEID} - Event ${EVENT_ID} - MOSAIC FINISHED" >> $PROGRESS_LOG
 
               popd
             fi
 
           fi
 
-          if ! grep -q "TEXT DATA of $EVENT_UNIQUE_ID MOVED to final location" $PROGRESS_LOG; then
+          if ! grep -q "${UNIQUEID} - Event ${EVENT_ID} - TEXT DATA MOVED to final location" $PROGRESS_LOG; then
             # Move processed file to final location
             mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
-            echo "TEXT DATA of $EVENT_UNIQUE_ID MOVED to final location" >> $PROGRESS_LOG
+            timestamp "${UNIQUEID} - Event ${EVENT_ID} - TEXT DATA MOVED to final location" >> $PROGRESS_LOG
           fi
 
           echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
@@ -630,5 +646,10 @@ elif [ "$SAMPLE" = "false" ]; then
 
   done
 
+  # Remove event counter file
+  pushd ${BLENDER_SCRIPT_DIR}
+  rm event_counter.txt
+  popd
 
 fi
+timestamp "JOB FINISHED" >> $PROGRESS_LOG
