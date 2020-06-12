@@ -356,8 +356,8 @@ if [ "$SAMPLE" = "true" ]; then
 
     blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
     -duration=${DURATION} -cameras="${CAMERAS}" -datafile="d-esd-detail.dat" -simulated_t=0.03\
-    -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} -stamp_note=\
-    "opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS} \
+    -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} \
+    -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS}\
     -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
     -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}
 
