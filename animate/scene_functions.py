@@ -142,6 +142,10 @@ def importALICE_detailed_TPC(transp_par,blender_path):
     createMaterial("tpc_part_4",R=0,G=1,B=1,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Import detailed TPC
+    #
+    # File was provided by CERN's researcher Stefan Rossegger
+    # Email: stefan.rossegger@gmail.com
+    #
     for i in range(1,5):
         bpy.ops.wm.append(filename="tpc_part"+str(i), directory=blender_path+"/Detailed_TPC.blend/Object/")
         bpy.context.scene.objects.active = bpy.data.objects["tpc_part"+str(i)]
