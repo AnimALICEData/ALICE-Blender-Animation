@@ -556,7 +556,7 @@ elif [ "$SAMPLE" = "false" ]; then
 
             timestamp "${UNIQUEID}, ${EVENT_ID}, SCENE, STARTING, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
             blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
-            -duration=${DURATION} -cameras="${CAMERAS}" -datafile="${LOCAL_FILE_WITH_DATA}"\
+            -duration=${DURATION} -datafile="${LOCAL_FILE_WITH_DATA}"\
              -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION}\
              -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS}\
              -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \

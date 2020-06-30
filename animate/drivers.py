@@ -11,8 +11,7 @@ exec(compile(open(filename).read(), filename, 'exec'))
 class animationDriver:
     def __init__(self,name):
         self.name = name
-    def configure(self, renderCameras, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent=100):
-        self.renderCameras=renderCameras # array with cameras to render animation with
+    def configure(self, duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent=100):
         self.duration=duration  # total video duration in seconds
         self.fps=fps
         self.simulated_t=simulated_t # total simulated time in microseconds. (0.01 -> light travels ~ 3 m)
@@ -25,25 +24,6 @@ class animationDriver:
         bcs = bpy.context.scene
         bcs.frame_start = 0
         bcs.frame_end = self.N_frames
-
-    def render(self,pic_pct):
-        bcs = bpy.context.scene
-
-        self.output_prefix=[]
-        for c in range(0,len(self.renderCameras)):
-
-            # Set specific output info
-            self.output_prefix.append(self.fileIdentifier+str(self.xpixels)+"px_"+self.name+self.renderCameras[c])
-            bcs.render.filepath = "/tmp/alice_blender/"+self.output_prefix[c]
-            bcs.camera = bpy.data.objects[self.renderCameras[c]]
-
-            # Take picture of animation
-            bcs.frame_current = int(bcs.frame_end * pic_pct/100)
-            bpy.ops.render.render()
-            bpy.data.images['Render Result'].save_render(filepath=bcs.render.filepath+".png")
-
-            # Render actual animation
-            bpy.ops.render.render(animation=True)
 
     def configureOutput(self):
         # Configure Output
