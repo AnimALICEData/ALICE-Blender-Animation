@@ -72,7 +72,6 @@ tpc_blender_path = str(args.tpc_blender_path) # path to 'animate' directory, whe
 outputPath = str(args.output_path)+"/"
 fileIdentifier = "PhysicalTrajectories_"
 
-renderAnimation = False # True
 saveBlenderFile = blendersave # False
 
 """
@@ -99,8 +98,3 @@ bpy.context.scene.frame_current = 24
 
 ## Save blender file
 if saveBlenderFile: bpy.ops.wm.save_as_mainfile(filepath=outputPath+fileIdentifier+"AlirootFileGenerator_"+datafile+"_Event_"+n_event+".blend")
-
-# Render animation
-if renderAnimation: driver.render(picpct)
-
-#exit()
