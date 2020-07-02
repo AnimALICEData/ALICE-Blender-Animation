@@ -88,7 +88,7 @@ TPC=1
 DETAILED_TPC=0
 TRD=1
 EMCAL=1
-BLENDERSAVE=1
+BLENDERSAVE=0
 PICPCT=80
 # now enjoy the options in order and nicely split until we see --
 while true; do
@@ -277,7 +277,7 @@ if [[ $CAMERAS != "" ]]; then
     CAMERAS=$(echo $CAMERAS | sed -e 's#,#Camera #g' -e 's#$#Camera#')
 fi
 
-if [[ $MOSAIC == "true" ]]; then
+if [[ $MOSAIC = "true" ]]; then
     CAMERAS=$(echo "OverviewCamera BarrelCamera SideCamera ForwardCamera")
 fi
 
@@ -386,7 +386,7 @@ if [ "$SAMPLE" = "true" ]; then
     -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} \
     -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS}\
     -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
-    -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
+    -blendersave=1 -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
     -output_path="${BLENDER_OUTPUT}"
 
     popd
@@ -515,147 +515,216 @@ elif [ "$SAMPLE" = "false" ]; then
 
   EXTRACTED_FILES=$(ls -1 ${UNIQUEID}_*.dat | sort --version-sort)
 
-  for LOCAL_FILE_WITH_DATA in $EXTRACTED_FILES; do
+  if ! grep -q "${UNIQUEID}, REMOVED UNUSED FILES" $PROGRESS_LOG; then
 
-    pushd ${BLENDER_SCRIPT_DIR}
+    for LOCAL_FILE_WITH_DATA in $EXTRACTED_FILES; do
+
+      ##############################
+      # Phase 2: Event selection   #
+      ##############################
+
+      NUMBER_OF_PARTICLES=$(wc -l $LOCAL_FILE_WITH_DATA | \
+                        awk '{ print $1 }')
+
+      AVERAGE_PZ=$(awk 'BEGIN {pzsum=0;n=0} {pzsum+=$8;n++} END {print sqrt(pzsum*pzsum/n/n)}'\
+      ${LOCAL_FILE_WITH_DATA})
+
+      AVERAGE_PT=$(awk 'BEGIN {ptsum=0;n=0} {ptsum+=$9;n++} END {print ptsum/n}' \
+      ${LOCAL_FILE_WITH_DATA})
+
+      echo "File $LOCAL_FILE_WITH_DATA:"
+      echo "Number of particles: $NUMBER_OF_PARTICLES"
+      echo "Average Z momentum: $AVERAGE_PZ"
+      echo "Average transversal momentum $AVERAGE_PT"
+
+      EVENT_COUNTER=$(more event_counter.txt)
+
+      ######################################################################
+      # Remove text data of files for events that will not be animated:    #
+      ######################################################################
+      if (( $(echo "$AVERAGE_PT < $MIN_AVG_PT" |bc -l) )); then
+
+        echo "Average Transversal Momentum too low (minimum accepted is $MIN_AVG_PT). Deleting data text file."
+
+        # Remove non-processed files
+        rm -f $LOCAL_FILE_WITH_DATA
+
+      elif (( $(echo "$AVERAGE_PZ < $MIN_AVG_PZ" |bc -l) )); then
+
+        echo "Average Z Momentum too low (minimum accepted is $MIN_AVG_PZ). Deleting data text file."
+
+        # Remove non-processed files
+        rm -f $LOCAL_FILE_WITH_DATA
+
+      elif [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
+
+        echo "Too little particles (minimum accepted is $MIN_PARTICLES). Deleting data text file."
+
+        # Remove non-processed files
+        rm -f $LOCAL_FILE_WITH_DATA
+
+      elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
+
+        echo "Too many particles (maximum accepted is $MAX_PARTICLES). Deleting data text file."
+
+        # Remove non-processed files
+        rm -f $LOCAL_FILE_WITH_DATA
+
+      elif [[ $EVENT_COUNTER -ge $N_OF_EVENTS ]]; then
+
+        echo "Numbers of events set to be animated has already been reached. Deleting data text file."
+
+        # Remove non-processed files
+        rm -f $LOCAL_FILE_WITH_DATA
+      else
+
+        # Increment event counter
+        EVENT_COUNTER=$EVENT_COUNTER+1
+        rm -f event_counter.txt
+        echo "$EVENT_COUNTER" > event_counter.txt
+
+        echo "This event will be animated. Continue."
+
+      fi
+
+      echo " " # Skip line to make it neat
+
+    done
+
+    timestamp "${UNIQUEID}, REMOVED UNUSED FILES" >> $PROGRESS_LOG
+
+  fi
+
+  # Remove event counter file
+  rm -f event_counter.txt
+
+  # Now the list of extracted files shall only include events we want to animate
+  EXTRACTED_FILES=$(ls -1 ${UNIQUEID}_*.dat | sort --version-sort)
+
+  ################################################
+  #   Create script so we can use GNU parallel   #
+  #     to create multiple Blender scenes        #
+  ################################################
+  if ! grep -q "${UNIQUEID}, PREPARED TO MAKE SCENES IN PARALLEL" $PROGRESS_LOG; then
+
+    rm -f scene-making
+
+    for LOCAL_FILE_WITH_DATA in $EXTRACTED_FILES; do
+
+      EVENT_ID=$(echo $LOCAL_FILE_WITH_DATA | \
+                 sed -e "s#${UNIQUEID}_##" \
+                   -e "s#\.dat##")
+      EVENT_UNIQUE_ID=${UNIQUEID}_${EVENT_ID}
+
+      # echo 'blender animate_particles.py' > scene-making
+      echo blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
+  -duration=${DURATION} -datafile=\'${LOCAL_FILE_WITH_DATA}\' \
+  -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} \
+  -transparency=${TRANSPARENCY} -stamp_note=\'${EVENT_UNIQUE_ID}\' -its=${ITS} \
+  -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
+  -blendersave=1 -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
+  -output_path=\'${BLENDER_OUTPUT}\' >> scene-making
+    done
+
+    timestamp "${UNIQUEID}, PREPARED TO MAKE SCENES IN PARALLEL" >> $PROGRESS_LOG
+
+  fi
+
+  ###################################
+  # Make Blender scenes in parallel #
+  ###################################
+  if ! grep -q "${UNIQUEID}, PARALLEL, SCENES, FINISHED" $PROGRESS_LOG; then
+
+    parallel --jobs $N_OF_EVENTS < scene-making
+
+    timestamp "${UNIQUEID}, PARALLEL, SCENES, FINISHED" >> $PROGRESS_LOG
+
+  fi
+
+  rm -f scene-making
+
+  #####################################
+  # Render scenes in selected cameras #
+  #####################################
+  for LOCAL_FILE_WITH_DATA in $EXTRACTED_FILES; do
 
     EVENT_ID=$(echo $LOCAL_FILE_WITH_DATA | \
                sed -e "s#${UNIQUEID}_##" \
                  -e "s#\.dat##")
     EVENT_UNIQUE_ID=${UNIQUEID}_${EVENT_ID}
-
-    ##############################
-    # Phase 2: blender animate   #
-    ##############################
-
     NUMBER_OF_PARTICLES=$(wc -l $LOCAL_FILE_WITH_DATA | \
                       awk '{ print $1 }')
 
-    AVERAGE_PZ=$(awk 'BEGIN {pzsum=0;n=0} {pzsum+=$8;n++} END {print sqrt(pzsum*pzsum/n/n)}'\
-    ${LOCAL_FILE_WITH_DATA})
+    for type in $CAMERAS; do
 
-    AVERAGE_PT=$(awk 'BEGIN {ptsum=0;n=0} {ptsum+=$9;n++} END {print ptsum/n}' \
-    ${LOCAL_FILE_WITH_DATA})
+      if ! grep -q "${UNIQUEID}, ${EVENT_ID}, ${type}, FINISHED" $PROGRESS_LOG; then
 
-    echo "File $LOCAL_FILE_WITH_DATA has $NUMBER_OF_PARTICLES particles."
-    echo "Average Z momentum: $AVERAGE_PZ"
-    echo "Average transversal momentum $AVERAGE_PT"
+        timestamp "${UNIQUEID}, ${EVENT_ID}, ${type}, STARTING, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
+        blender -noaudio --background -P render.py -- -cam ${type} -datafile\
+         "${LOCAL_FILE_WITH_DATA}" -n_event ${EVENT_ID} -pic_pct ${PICPCT} -output_path "${BLENDER_OUTPUT}"
 
-    EVENT_COUNTER=$(more event_counter.txt)
+        timestamp "${UNIQUEID}, ${EVENT_ID}, ${type}, FINISHED, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
 
-    if (( $(echo "$AVERAGE_PT >= $MIN_AVG_PT" |bc -l) )); then
-      if (( $(echo "$AVERAGE_PZ >= $MIN_AVG_PZ" |bc -l) )); then
-        if [[ $NUMBER_OF_PARTICLES -le $MAX_PARTICLES && $NUMBER_OF_PARTICLES \
--ge $MIN_PARTICLES && $EVENT_COUNTER -lt $N_OF_EVENTS ]]; then
-
-          if ! grep -q "${UNIQUEID}, ${EVENT_ID}, SCENE, FINISHED" $PROGRESS_LOG; then
-
-            echo "Processing ${EVENT_UNIQUE_ID} ($NUMBER_OF_PARTICLES tracks) in Blender"
-
-            echo "Processing ${EVENT_UNIQUE_ID} in Blender"
-
-            timestamp "${UNIQUEID}, ${EVENT_ID}, SCENE, STARTING, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
-            blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
-            -duration=${DURATION} -datafile="${LOCAL_FILE_WITH_DATA}"\
-             -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION}\
-             -transparency=${TRANSPARENCY} -stamp_note="${EVENT_UNIQUE_ID}" -its=${ITS}\
-             -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
-            -blendersave=${BLENDERSAVE} -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR}\
-            -output_path="${BLENDER_OUTPUT}"
-            timestamp "${UNIQUEID}, ${EVENT_ID}, SCENE, FINISHED, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
-
-          fi
-
-
-          for type in $CAMERAS; do
-
-            if ! grep -q "${UNIQUEID}, ${EVENT_ID}, ${type}, FINISHED" $PROGRESS_LOG; then
-              timestamp "${UNIQUEID}, ${EVENT_ID}, ${type}, STARTING, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
-              blender -noaudio --background -P render.py -- -cam ${type} -datafile\
-               "${LOCAL_FILE_WITH_DATA}" -n_event ${EVENT_ID} -pic_pct ${PICPCT} -output_path "${BLENDER_OUTPUT}"
-
-              timestamp "${UNIQUEID}, ${EVENT_ID}, ${type}, FINISHED, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
-            fi
-
-          done
-
-          if [ "$MOSAIC" = "true" ]; then
-
-            if ! grep -q "${UNIQUEID}, ${EVENT_ID}, MOSAIC, FINISHED" $PROGRESS_LOG; then
-              pushd ${BLENDER_OUTPUT}
-
-              timestamp "${UNIQUEID}, ${EVENT_ID}, MOSAIC, STARTING, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
-
-              # Delete existing incomplete .mp4 file
-              if [[ -f ${EVENT_UNIQUE_ID}_Mosaic.mp4 ]]; then
-                rm ${EVENT_UNIQUE_ID}_Mosaic.mp4
-              fi
-
-              # Setting input names for clips in order to make mosaic clip
-              INPUT_ONE=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==1')
-              INPUT_TWO=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==2')
-              INPUT_THREE=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==3')
-              INPUT_FOUR=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==4')
-
-              ffmpeg -i ${INPUT_FOUR} -i ${INPUT_TWO} -i ${INPUT_THREE} -i ${INPUT_ONE} -filter_complex\
-               "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"\
-               -map "[v]" ${EVENT_UNIQUE_ID}_Mosaic.mp4
-
-              timestamp "${UNIQUEID}, ${EVENT_ID}, MOSAIC, FINISHED, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
-
-              popd
-            fi
-
-          fi
-
-          if ! grep -q "${UNIQUEID}, ${EVENT_ID}, TEXT DATA MOVED to final location" $PROGRESS_LOG; then
-            # Move processed file to final location
-            mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
-            timestamp "${UNIQUEID}, ${EVENT_ID}, TEXT DATA MOVED to final location" >> $PROGRESS_LOG
-          fi
-
-          echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
-
-          # Increment event counter
-          EVENT_COUNTER=$EVENT_COUNTER+1
-          rm -f event_counter.txt
-          echo "$EVENT_COUNTER" > event_counter.txt
-
-        else
-
-          if [[ $NUMBER_OF_PARTICLES -lt $MIN_PARTICLES ]]; then
-            echo "Too little particles (minimum accepted is $MIN_PARTICLES). Continue."
-          elif [[ $NUMBER_OF_PARTICLES -gt $MAX_PARTICLES ]]; then
-            echo "Too many particles (maximum accepted is $MAX_PARTICLES). Continue."
-          elif [[ $EVENT_COUNTER -ge $N_OF_EVENTS ]]; then
-            echo "Numbers of events set to be animated has already been reached. Continue."
-          fi
-
-          # Remove non-processed files
-          rm -f $LOCAL_FILE_WITH_DATA
-
-        fi
-      else
-        echo "Average Z Momentum too low (minimum accepted is $MIN_AVG_PZ). Continue."
-
-        # Remove non-processed files
-        rm -f $LOCAL_FILE_WITH_DATA
       fi
-    else
-      echo "Average Transversal Momentum too low (minimum accepted is $MIN_AVG_PT). Continue."
 
-      # Remove non-processed files
-      rm -f $LOCAL_FILE_WITH_DATA
+    done
+
+    ########################
+    # Make mosaic 2x2 clip #
+    ########################
+    if [ "$MOSAIC" = "true" ]; then
+
+      if ! grep -q "${UNIQUEID}, ${EVENT_ID}, MOSAIC, FINISHED" $PROGRESS_LOG; then
+        pushd ${BLENDER_OUTPUT}
+
+        timestamp "${UNIQUEID}, ${EVENT_ID}, MOSAIC, STARTING, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
+
+        # Delete existing incomplete .mp4 file
+        if [[ -f ${EVENT_UNIQUE_ID}_Mosaic.mp4 ]]; then
+          rm ${EVENT_UNIQUE_ID}_Mosaic.mp4
+        fi
+
+        # Setting input names for clips in order to make mosaic clip
+        INPUT_ONE=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==1')
+        INPUT_TWO=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==2')
+        INPUT_THREE=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==3')
+        INPUT_FOUR=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==4')
+
+        ffmpeg -i ${INPUT_FOUR} -i ${INPUT_TWO} -i ${INPUT_THREE} -i ${INPUT_ONE} -filter_complex\
+         "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"\
+         -map "[v]" ${EVENT_UNIQUE_ID}_Mosaic.mp4
+
+        timestamp "${UNIQUEID}, ${EVENT_ID}, MOSAIC, FINISHED, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
+
+        popd
+      fi
+
     fi
 
-    popd
+    #######################################################
+    # Move text data files to where animations are stored #
+    #######################################################
+    if ! grep -q "${UNIQUEID}, ${EVENT_ID}, TEXT DATA MOVED to final location" $PROGRESS_LOG; then
+
+      # Move processed file to final location
+      mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
+      timestamp "${UNIQUEID}, ${EVENT_ID}, TEXT DATA MOVED to final location" >> $PROGRESS_LOG
+
+    fi
+
+    echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
 
   done
-
-  # Remove event counter file
-  pushd ${BLENDER_SCRIPT_DIR}
-  rm -f event_counter.txt
   popd
+
+  ########################
+  # Remove blender files #
+  ########################
+  if [[ $BLENDERSAVE = 0 ]]; then
+    pushd ${BLENDER_OUTPUT}
+    rm -f *.blend
+    popd
+  fi
 
 fi
 timestamp "${UNIQUEID}, JOB FINISHED" >> $PROGRESS_LOG
