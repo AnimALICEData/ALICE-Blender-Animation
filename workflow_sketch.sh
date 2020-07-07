@@ -598,8 +598,13 @@ elif [ "$SAMPLE" = "false" ]; then
   # Remove event counter file
   rm -f event_counter.txt
 
-  # Now the list of extracted files shall only include events we want to animate
-  EXTRACTED_FILES=$(ls -1 ${UNIQUEID}_*.dat | sort --version-sort)
+  if [[ $N_OF_EVENTS = 0 ]]; then
+    timestamp "${UNIQUEID}, JOB FINISHED" >> $PROGRESS_LOG
+    exit
+  else
+    # Now the list of extracted files shall only include events we want to animate
+    EXTRACTED_FILES=$(ls -1 ${UNIQUEID}_*.dat | sort --version-sort)
+  fi
 
   ################################################
   #   Create script so we can use GNU parallel   #
@@ -608,6 +613,8 @@ elif [ "$SAMPLE" = "false" ]; then
   if ! grep -q "${UNIQUEID}, PREPARED TO MAKE SCENES IN PARALLEL" $PROGRESS_LOG; then
 
     rm -f scene-making
+    rm -f make-event-*
+    rm -f blender-scenes
 
     for LOCAL_FILE_WITH_DATA in $EXTRACTED_FILES; do
 
@@ -615,15 +622,29 @@ elif [ "$SAMPLE" = "false" ]; then
                  sed -e "s#${UNIQUEID}_##" \
                    -e "s#\.dat##")
       EVENT_UNIQUE_ID=${UNIQUEID}_${EVENT_ID}
+      NUMBER_OF_PARTICLES=$(wc -l $LOCAL_FILE_WITH_DATA | \
+                        awk '{ print $1 }')
 
-      # echo 'blender animate_particles.py' > scene-making
+      # Write commands for making scene and tracking their progress to separate files "make-event-N"
+      echo "# Define a timestamp function" >> make-event-${EVENT_ID}
+      echo "timestamp() {" >> make-event-${EVENT_ID}
+      echo "  date +\"%y-%m-%d, %T, \$1\"" >> make-event-${EVENT_ID}
+      echo "}" >> make-event-${EVENT_ID}
+      echo timestamp \"${UNIQUEID}, ${EVENT_ID}, BLENDER SCENE, STARTING, ${NUMBER_OF_PARTICLES}\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
       echo blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
   -duration=${DURATION} -datafile=\'${LOCAL_FILE_WITH_DATA}\' \
   -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} \
   -transparency=${TRANSPARENCY} -stamp_note=\'${EVENT_UNIQUE_ID}\' -its=${ITS} \
   -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
   -blendersave=1 -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
-  -output_path=\'${BLENDER_OUTPUT}\' >> scene-making
+  -output_path=\'${BLENDER_OUTPUT}\' >> make-event-${EVENT_ID}
+      echo timestamp \"${UNIQUEID}, ${EVENT_ID}, BLENDER SCENE, FINISHED, ${NUMBER_OF_PARTICLES}\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
+
+      # Write text inside "make-event-N" on common file for all events for registering sake
+      more make-event-${EVENT_ID} >> blender-scenes
+
+      # Write command to run code inside "make-event-N" on "scene-making" file
+      echo ./make-event-${EVENT_ID} >> scene-making
     done
 
     timestamp "${UNIQUEID}, PREPARED TO MAKE SCENES IN PARALLEL" >> $PROGRESS_LOG
@@ -635,6 +656,7 @@ elif [ "$SAMPLE" = "false" ]; then
   ###################################
   if ! grep -q "${UNIQUEID}, PARALLEL, SCENES, FINISHED" $PROGRESS_LOG; then
 
+    chmod +x make-event-*
     parallel --jobs $N_OF_EVENTS < scene-making
 
     timestamp "${UNIQUEID}, PARALLEL, SCENES, FINISHED" >> $PROGRESS_LOG
@@ -642,6 +664,8 @@ elif [ "$SAMPLE" = "false" ]; then
   fi
 
   rm -f scene-making
+  rm -f make-event-*
+  mv blender-scenes ${BLENDER_OUTPUT}/blender-scenes
 
   #####################################
   # Render scenes in selected cameras #
