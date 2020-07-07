@@ -657,7 +657,7 @@ elif [ "$SAMPLE" = "false" ]; then
   if ! grep -q "${UNIQUEID}, PARALLEL, SCENES, FINISHED" $PROGRESS_LOG; then
 
     chmod +x make-event-*
-    parallel --jobs $N_OF_EVENTS < scene-making
+    parallel < scene-making
 
     timestamp "${UNIQUEID}, PARALLEL, SCENES, FINISHED" >> $PROGRESS_LOG
 
