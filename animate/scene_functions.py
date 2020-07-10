@@ -1,3 +1,5 @@
+import math
+
 # Import Blender functions
 filename = os.path.join(os.path.basename(bpy.data.filepath), "blender_functions.py")
 exec(compile(open(filename).read(), filename, 'exec'))
@@ -277,6 +279,11 @@ def addCameras():
     bpy.context.object.name = "SideCamera"
     bpy.context.object.data.lens = 9
 
+    # Moving Camera
+    bpy.ops.object.camera_add(location = (0, 7, 15), rotation = (-0.427606,0,0))
+    bpy.context.object.name = "MovingCamera"
+    bpy.context.object.data.lens = 26
+
 # Function that creates Blender Objects from input list of particles.
 ## Returns a list of blender objects
 def createSceneParticles(particles, r_part=1, createTracks = False):
@@ -356,6 +363,27 @@ def createSceneParticles(particles, r_part=1, createTracks = False):
 
 
     return blender_particles, blender_tracks
+
+def animate_camera(driver):
+    bcs = bpy.context.scene
+
+    #Animate particles
+    for f in range(bcs.frame_end):
+        theta = f/bcs.frame_end*math.pi
+        bcs.frame_current = f
+        print("Configuring moving camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['MovingCamera']
+        x_cam=15*math.sin(theta)
+        y_cam=7
+        z_cam=15*math.cos(theta)
+        x_rot_cam=-0.427606
+        y_rot_cam=theta
+        z_rot_cam=0
+        bpy.context.object.location=(x_cam,y_cam,z_cam)
+        bpy.context.object.keyframe_insert(data_path='location')
+        bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
+        bpy.context.object.keyframe_insert(data_path='rotation_euler')
+
 
 # Function that animates the scene using the particle propagator class
 def animate(objects, particles, driver):

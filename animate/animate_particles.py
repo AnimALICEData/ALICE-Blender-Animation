@@ -94,6 +94,7 @@ blender_particles, blender_tracks = createSceneParticles(particles,r_part,create
 #Animate scene using driver
 animate(blender_particles,particles,driver)
 animate_tracks(blender_tracks,particles,driver)
+animate_camera(driver)
 
 bpy.context.scene.frame_current = 24
 
