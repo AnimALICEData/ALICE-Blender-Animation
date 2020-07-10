@@ -252,11 +252,11 @@ Usage:
    -c | --cameras VALUE
      Which cameras to use for the animation, where VALUE
      is a comma-separated list (without spaces)
-     Options: Barrel,Side,Forward,Overview (defaults to Overview)
+     Options: Barrel,Side,Forward,Overview,Moving (defaults to Overview)
    --mosaic
-     Make animations in all four available cameras and combine them into
-     a single 2x2 clip containing all perspectives, totalizing five generated
-     .mp4 videos.
+     Make animations in all four available steady cameras and combine them into
+     a single 2x2 clip containing all perspectives, totalizing at least five
+     generated .mp4 videos.
    --picpct VALUE
      Percentage of animation to take HD picture, saved along with the clip,
      where VALUE must be an integer
@@ -293,8 +293,22 @@ if [[ $CAMERAS != "" ]]; then
     CAMERAS=$(echo $CAMERAS | sed -e 's#,#Camera #g' -e 's#$#Camera#')
 fi
 
+# Set cameras properly if MOSAIC is called
 if [[ $MOSAIC = "true" ]]; then
+  
+  MOVING="false"
+  for type in $CAMERAS; do
+    if [ "${type}" = "Moving" ]; then
+      MOVING="true"
+    fi
+  done
+
+  if [ "$MOVING" = "true" ]; then
+    CAMERAS=$(echo "OverviewCamera BarrelCamera SideCamera ForwardCamera MovingCamera")
+  else
     CAMERAS=$(echo "OverviewCamera BarrelCamera SideCamera ForwardCamera")
+  fi
+
 fi
 
 if [[ $HELP = "true" ]]; then
