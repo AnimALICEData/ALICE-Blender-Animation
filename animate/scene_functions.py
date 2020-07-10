@@ -279,7 +279,7 @@ def addCameras():
 
 # Function that creates Blender Objects from input list of particles.
 ## Returns a list of blender objects
-def createSceneParticles(particles, createTracks = False):
+def createSceneParticles(particles, r_part=1, createTracks = False):
     # Associate particles and colors
     particle_types = ["Electron","Pion","Muon","Proton","Kaon","Unknown"]
     clRed = (1, 0, 0)
@@ -302,6 +302,13 @@ def createSceneParticles(particles, createTracks = False):
     # Create blender spheres (particles)
     blender_particles=[]
     n_particles=len(particles)
+
+    # Define particle radius based on multiplicity
+    if n_particles > 15000:
+        r_part=0.01*r_part
+    else:
+        r_part=0.05-(0.04/15000)*n_particles*r_part
+
     for particle in particles:
         this_type=particle.p_type
         print("Adding Sphere - Particle " + str(len(blender_particles)+1)+" of "+str(n_particles)+" - "+this_type)
@@ -328,7 +335,7 @@ def createSceneParticles(particles, createTracks = False):
                 curveTrack.resolution_u = 2
 
                 curveTrack.fill_mode = 'FULL'
-                curveTrack.bevel_depth = 0.02
+                curveTrack.bevel_depth = 0.4*r_part # Tracks are 40% the thickness of particles
                 curveTrack.bevel_resolution = 3
 
 

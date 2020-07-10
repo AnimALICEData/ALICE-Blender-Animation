@@ -48,7 +48,7 @@ if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
 fi
 
 OPTIONS=c:hdau:m:n:t:r:
-LONGOPTS=cameras:,mosaic,resolution:,fps:,transparency:,duration:,maxparticles:,\
+LONGOPTS=cameras:,mosaic,resolution:,fps:,transparency:,duration:,radius:,maxparticles:,\
 minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,\
 tpc,detailedtpc,trd,emcal,blendersave,picpct:,bgshade:
 
@@ -71,6 +71,7 @@ eval set -- "$PARSED"
 CAMERAS=Overview
 MOSAIC=false
 DURATION=10
+RADIUS=1
 RESOLUTION=100
 FPS=24
 TRANSPARENCY=1
@@ -90,7 +91,7 @@ TRD=1
 EMCAL=1
 BLENDERSAVE=0
 PICPCT=80
-BGSHADE=0.051
+BGSHADE=0
 # now enjoy the options in order and nicely split until we see --
 while true; do
     case "$1" in
@@ -135,7 +136,11 @@ while true; do
           DURATION="$2"
           shift 2
           ;;
-      -r|--resolution)
+      -r|--radius)
+          RADIUS="$2"
+          shift 2
+          ;;
+      --resolution)
           RESOLUTION="$2"
           shift 2
           ;;
@@ -233,7 +238,10 @@ Usage:
      events with 'boosts' of particles on the xy plane.
    -t | --duration VALUE
      Set the animation duration in seconds.
-   -r | --resolution VALUE
+   -r | --radius VALUE
+     Scale default particle radius to a given VALUE, greater than zero.
+     For example, VALUE=2 scales particle to twice its default size.
+   --resolution VALUE
      Set the animation resolution percentage, where
      VALUE must be an integer from 1 to 100.
    --fps VALUE
@@ -299,6 +307,7 @@ else
     echo "Sample: $SAMPLE"
     echo "Transparency Parameter: $TRANSPARENCY"
     echo "Duration: $DURATION"
+    echo "Particle Radius Scale: $RADIUS"
     echo "Resolution: $RESOLUTION"
     echo "FPS: $FPS"
     echo "Max particles: ${MAX_PARTICLES}"
@@ -390,7 +399,7 @@ if [ "$SAMPLE" = "true" ]; then
     pushd ${BLENDER_SCRIPT_DIR}
     echo "Preparing sample animation in Blender"
 
-    blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
+    blender -noaudio --background -P animate_particles.py -- -radius=${RADIUS} \
     -duration=${DURATION} -cameras="${CAMERAS}" -datafile="d-esd-detail.dat" -simulated_t=0.03\
     -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} \
     -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS}\
@@ -640,7 +649,7 @@ elif [ "$SAMPLE" = "false" ]; then
       echo "  date +\"%y-%m-%d, %T, \$1\"" >> make-event-${EVENT_ID}
       echo "}" >> make-event-${EVENT_ID}
       echo timestamp \"${UNIQUEID}, ${EVENT_ID}, BLENDER SCENE, STARTING, ${NUMBER_OF_PARTICLES}\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
-      echo blender -noaudio --background -P animate_particles.py -- -radius=0.05 \
+      echo blender -noaudio --background -P animate_particles.py -- -radius=${RADIUS} \
   -duration=${DURATION} -datafile=\'${LOCAL_FILE_WITH_DATA}\' \
   -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} \
   -transparency=${TRANSPARENCY} -stamp_note=\'${EVENT_UNIQUE_ID}\' -its=${ITS} \

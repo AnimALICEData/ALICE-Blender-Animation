@@ -2,7 +2,7 @@
 # animate_particles.py - Animate HEP events
 #
 #   For console only rendering (example):
-#   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 \
+#   $ blender -noaudio --background -P animate_particles.py -- -radius=1.2 -duration=1 \
 #   -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 -stamp_note="Texto no canto"\
 #    -its=1 -tpc=0 -trd=1 -detailed_tpc=1 -emcal=0 -blendersave=0 -tpc_blender_path="/home/files/blender"\
 #    -output_path="/tmp/blender" -bgshade=0.05
@@ -55,7 +55,7 @@ filename = os.path.join(os.path.basename(bpy.data.filepath), "drivers.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
 # Set animation parameters
-r_part = float(args.r_part) # Particle radius
+r_part = float(args.r_part) # Particle radius scale
 n_event = str(args.n_event) # Event number for video name
 simulated_t = float(args.simulated_t) # in microsseconds
 duration = int(args.duration) # in seconds
@@ -89,7 +89,7 @@ driver.configure(duration, fps, simulated_t, outputPath, fileIdentifier, resolut
 ### Build scene
 init(stamp_note,transp_par,detectors,tpc_blender_path,bgshade) # Cleanup, addCameras, addALICE_TPC, Set background
 particles = driver.getParticles()
-blender_particles, blender_tracks = createSceneParticles(particles,createTracks = True) # Create blender objects - one sphere per particle
+blender_particles, blender_tracks = createSceneParticles(particles,r_part,createTracks = True) # Create blender objects - one sphere per particle
 
 #Animate scene using driver
 animate(blender_particles,particles,driver)
