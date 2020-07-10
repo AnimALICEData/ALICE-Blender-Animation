@@ -2,12 +2,13 @@
 filename = os.path.join(os.path.basename(bpy.data.filepath), "blender_functions.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
-def init(unique_id,transp_par,detectors,blender_path):
+def init(unique_id,transp_par,detectors,blender_path,bgshade):
     bcs = bpy.context.scene
 
     # Configure Environment
     bcs.world.light_settings.use_environment_light = False
     bcs.world.light_settings.environment_energy = 0.1
+    bpy.context.scene.world.horizon_color = (bgshade,bgshade,bgshade)
 
     # Configure Stamp
     bcsr = bpy.context.scene.render
@@ -354,7 +355,7 @@ def animate(objects, particles, driver):
     bcs = bpy.context.scene
 
     #Animate particles
-    for f in range(1, bcs.frame_end+1):
+    for f in range(bcs.frame_end):
         t = driver.delta_t*f
         bcs.frame_current = f
         print("Configuring particles in frame: "+str(f)+" of "+str(bcs.frame_end))
@@ -368,8 +369,8 @@ def animate_tracks(tracks, particles, driver):
     bcs = bpy.context.scene
 
     #Animate tracks
-    for f in range(1, bcs.frame_end+1):
-        t = driver.delta_t*f
+    for f in range(bcs.frame_end):
+        t = driver.delta_t*(f+1) # choosing (f+1) instead of (f) removes gap between track and particle
         bcs.frame_current = f
         print("Configuring tracks in frame: "+ str(f) +" of "+ str(bcs.frame_end))
         for point in range(f,bcs.frame_end+1):

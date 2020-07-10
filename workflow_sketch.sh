@@ -50,7 +50,7 @@ fi
 OPTIONS=c:hdau:m:n:t:r:
 LONGOPTS=cameras:,mosaic,resolution:,fps:,transparency:,duration:,maxparticles:,\
 minparticles:,numberofevents:,minavgpz:,minavgpt:,help,download,sample,url:,its,\
-tpc,detailedtpc,trd,emcal,blendersave,picpct:
+tpc,detailedtpc,trd,emcal,blendersave,picpct:,bgshade:
 
 # -regarding ! and PIPESTATUS see above
 # -temporarily store output to be able to check for errors
@@ -90,6 +90,7 @@ TRD=1
 EMCAL=1
 BLENDERSAVE=0
 PICPCT=80
+BGSHADE=0.051
 # now enjoy the options in order and nicely split until we see --
 while true; do
     case "$1" in
@@ -156,6 +157,10 @@ while true; do
           ;;
       --picpct)
       	  PICPCT="$2"
+      	  shift 2
+      	  ;;
+      --bgshade)
+      	  BGSHADE="$2"
       	  shift 2
       	  ;;
       --its)
@@ -247,6 +252,9 @@ Usage:
    --picpct VALUE
      Percentage of animation to take HD picture, saved along with the clip,
      where VALUE must be an integer
+   --bgshade VALUE
+     Set background shade of black to VALUE, where 0 is totally black
+     and 1 is totally white
    -a | --sample
      Creates a sample Blender animation of Event 2 from URL
      http://opendata.cern.ch/record/1102/files/assets/alice/2010/LHC10h/000139\
@@ -301,6 +309,7 @@ else
     echo "Cameras: $CAMERAS"
     echo "Mosaic: $MOSAIC"
     echo "Picture Percentage: ${PICPCT}%"
+    echo "Background Shade: ${BGSHADE}"
     echo "-----------------------------------"
     echo "------------ Detectors ------------"
     if [[ $ITS = 1 ]]; then
@@ -386,7 +395,7 @@ if [ "$SAMPLE" = "true" ]; then
     -fps=${FPS} -resolution=${RESOLUTION} -transparency=${TRANSPARENCY} \
     -stamp_note="opendata.cern.ch_record_1102_alice_2010_LHC10h_000139038_ESD_0001_2" -its=${ITS}\
     -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
-    -blendersave=1 -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
+    -blendersave=1 -bgshade=${BGSHADE} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
     -output_path="${BLENDER_OUTPUT}"
 
     popd
@@ -610,7 +619,7 @@ elif [ "$SAMPLE" = "false" ]; then
   #   Create script so we can use GNU parallel   #
   #     to create multiple Blender scenes        #
   ################################################
-  if ! grep -q "${UNIQUEID}, PREPARED TO MAKE SCENES IN PARALLEL" $PROGRESS_LOG; then
+  if ! grep -q "${UNIQUEID}, PARALLEL, SCENES, STARTING" $PROGRESS_LOG; then
 
     rm -f scene-making
     rm -f make-event-*
@@ -636,7 +645,7 @@ elif [ "$SAMPLE" = "false" ]; then
   -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} \
   -transparency=${TRANSPARENCY} -stamp_note=\'${EVENT_UNIQUE_ID}\' -its=${ITS} \
   -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
-  -blendersave=1 -picpct=${PICPCT} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
+  -blendersave=1 -bgshade=${BGSHADE} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
   -output_path=\'${BLENDER_OUTPUT}\' >> make-event-${EVENT_ID}
       echo timestamp \"${UNIQUEID}, ${EVENT_ID}, BLENDER SCENE, FINISHED, ${NUMBER_OF_PARTICLES}\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
 
@@ -647,7 +656,7 @@ elif [ "$SAMPLE" = "false" ]; then
       echo ./make-event-${EVENT_ID} >> scene-making
     done
 
-    timestamp "${UNIQUEID}, PREPARED TO MAKE SCENES IN PARALLEL" >> $PROGRESS_LOG
+    timestamp "${UNIQUEID}, PARALLEL, SCENES, STARTING" >> $PROGRESS_LOG
 
   fi
 

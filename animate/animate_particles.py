@@ -4,7 +4,8 @@
 #   For console only rendering (example):
 #   $ blender -noaudio --background -P animate_particles.py -- -radius=0.05 -duration=1 \
 #   -datafile="esd-detail.dat" -n_event=0 -simulated_t=0.02 -fps=24 -resolution=100 -transparency=1.2 -stamp_note="Texto no canto"\
-#    -its=1 -tpc=0 -trd=1 -detailed_tpc=1 -emcal=0 -blendersave=0 -picpct=5 -tpc_blender_path="/home/files/blender" -output_path="/tmp/blender"
+#    -its=1 -tpc=0 -trd=1 -detailed_tpc=1 -emcal=0 -blendersave=0 -tpc_blender_path="/home/files/blender"\
+#    -output_path="/tmp/blender" -bgshade=0.05
 #
 
 import os
@@ -42,7 +43,7 @@ parser.add_argument('-tpc','--tpc')
 parser.add_argument('-trd','--trd')
 parser.add_argument('-emcal','--emcal')
 parser.add_argument('-blendersave','--blendersave')
-parser.add_argument('-picpct','--picpct')
+parser.add_argument('-bgshade','--bgshade')
 parser.add_argument('-tpc_blender_path','--tpc_blender_path')
 parser.add_argument('-detailed_tpc','--detailed_tpc')
 parser.add_argument('-output_path','--output_path')
@@ -65,7 +66,7 @@ transp_par = float(args.transp_par)
 datafile = str(args.datafile)
 detectors = [int(args.its),int(args.tpc),int(args.trd),int(args.emcal),int(args.detailed_tpc)] # Array that stores which detectors to build
 blendersave = int(args.blendersave) # 1 (save Blender file) or 0 (don't)
-picpct = int(args.picpct) # percentage of animation to take picture
+bgshade = float(args.bgshade)
 tpc_blender_path = str(args.tpc_blender_path) # path to 'animate' directory, where .blend file for detailed TPC is saved
 
 # Configure Output
@@ -86,7 +87,7 @@ driver = dataDriver("AlirootFileGenerator",n_event,datafile) # Simple dataDriver
 driver.configure(duration, fps, simulated_t, outputPath, fileIdentifier, resolution_percent)
 
 ### Build scene
-init(stamp_note,transp_par,detectors,tpc_blender_path) # Cleanup, addCameras, addALICE_TPC
+init(stamp_note,transp_par,detectors,tpc_blender_path,bgshade) # Cleanup, addCameras, addALICE_TPC, Set background
 particles = driver.getParticles()
 blender_particles, blender_tracks = createSceneParticles(particles,createTracks = True) # Create blender objects - one sphere per particle
 
