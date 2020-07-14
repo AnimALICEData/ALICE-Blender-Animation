@@ -252,7 +252,7 @@ Usage:
    -c | --cameras VALUE
      Which cameras to use for the animation, where VALUE
      is a comma-separated list (without spaces)
-     Options: Barrel,Side,Forward,Overview,Moving (defaults to Overview)
+     Options: Barrel,Side,Forward,Overview,Moving1,Moving2,Moving3,Moving4 (defaults to Overview)
    --mosaic
      Make animations in all four available steady cameras and combine them into
      a single 2x2 clip containing all perspectives, totalizing at least five
@@ -295,19 +295,8 @@ fi
 
 # Set cameras properly if MOSAIC is called
 if [[ $MOSAIC = "true" ]]; then
-  
-  MOVING="false"
-  for type in $CAMERAS; do
-    if [ "${type}" = "Moving" ]; then
-      MOVING="true"
-    fi
-  done
 
-  if [ "$MOVING" = "true" ]; then
-    CAMERAS=$(echo "OverviewCamera BarrelCamera SideCamera ForwardCamera MovingCamera")
-  else
-    CAMERAS=$(echo "OverviewCamera BarrelCamera SideCamera ForwardCamera")
-  fi
+    CAMERAS+=" OverviewCamera BarrelCamera SideCamera ForwardCamera"
 
 fi
 

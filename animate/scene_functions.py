@@ -24,6 +24,8 @@ def init(unique_id,transp_par,detectors,blender_path,bgshade):
     bcsr.use_stamp_filename = False
     bcsr.stamp_note_text = unique_id
     bcsr.use_stamp_note = True
+    bcsr.stamp_font_size = 40
+
 
     # Cleanup
     bpy.data.objects.remove(bpy.data.objects['Cube'])
@@ -279,9 +281,24 @@ def addCameras():
     bpy.context.object.name = "SideCamera"
     bpy.context.object.data.lens = 9
 
-    # Moving Camera
-    bpy.ops.object.camera_add(location = (0, 7, 15), rotation = (-0.427606,0,0))
-    bpy.context.object.name = "MovingCamera"
+    # Moving Camera 1
+    bpy.ops.object.camera_add()
+    bpy.context.object.name = "Moving1Camera"
+    bpy.context.object.data.lens = 26
+
+    # Moving Camera 2
+    bpy.ops.object.camera_add()
+    bpy.context.object.name = "Moving2Camera"
+    bpy.context.object.data.lens = 26
+
+    # Moving Camera 3
+    bpy.ops.object.camera_add()
+    bpy.context.object.name = "Moving3Camera"
+    bpy.context.object.data.lens = 26
+
+    # Moving Camera 4
+    bpy.ops.object.camera_add()
+    bpy.context.object.name = "Moving4Camera"
     bpy.context.object.data.lens = 26
 
 # Function that creates Blender Objects from input list of particles.
@@ -367,12 +384,12 @@ def createSceneParticles(particles, r_part=1, createTracks = False):
 def animate_camera(driver):
     bcs = bpy.context.scene
 
-    #Animate particles
+    # Animate Moving Camera 1
     for f in range(bcs.frame_end):
-        theta = f/bcs.frame_end*math.pi
+        theta = f/bcs.frame_end*math.pi/2
         bcs.frame_current = f
-        print("Configuring moving camera in frame: "+str(f)+" of "+str(bcs.frame_end))
-        bcs.objects.active=bpy.data.objects['MovingCamera']
+        print("Configuring Moving1Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['Moving1Camera']
         x_cam=15*math.sin(theta)
         y_cam=7
         z_cam=15*math.cos(theta)
@@ -384,6 +401,56 @@ def animate_camera(driver):
         bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
         bpy.context.object.keyframe_insert(data_path='rotation_euler')
 
+    # Animate Moving Camera 2
+    for f in range(bcs.frame_end):
+        theta = f/bcs.frame_end*math.pi/2
+        bcs.frame_current = f
+        print("Configuring Moving2Camerara in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['Moving2Camera']
+        x_cam=15*math.sin(theta)
+        y_cam=7
+        z_cam=-15*math.cos(theta)
+        x_rot_cam=-0.427606
+        y_rot_cam=math.pi-theta
+        z_rot_cam=0
+        bpy.context.object.location=(x_cam,y_cam,z_cam)
+        bpy.context.object.keyframe_insert(data_path='location')
+        bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
+        bpy.context.object.keyframe_insert(data_path='rotation_euler')
+
+    # Animate Moving Camera 3
+    for f in range(bcs.frame_end):
+        theta = f/bcs.frame_end*math.pi/2
+        bcs.frame_current = f
+        print("Configuring Moving1Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['Moving3Camera']
+        x_cam=15*math.sin(theta)
+        y_cam=15*math.cos(theta)
+        z_cam=0
+        x_rot_cam=-math.pi/2
+        y_rot_cam=math.pi/2
+        z_rot_cam=-theta
+        bpy.context.object.location=(x_cam,y_cam,z_cam)
+        bpy.context.object.keyframe_insert(data_path='location')
+        bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
+        bpy.context.object.keyframe_insert(data_path='rotation_euler')
+
+    # Animate Moving Camera 4
+    for f in range(bcs.frame_end):
+        theta = f/bcs.frame_end*math.pi/2
+        bcs.frame_current = f
+        print("Configuring Moving1Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['Moving4Camera']
+        x_cam=15*math.sin(theta)
+        y_cam=-15*math.cos(theta)
+        z_cam=0
+        x_rot_cam=math.pi/2
+        y_rot_cam=math.pi/2
+        z_rot_cam=theta
+        bpy.context.object.location=(x_cam,y_cam,z_cam)
+        bpy.context.object.keyframe_insert(data_path='location')
+        bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
+        bpy.context.object.keyframe_insert(data_path='rotation_euler')
 
 # Function that animates the scene using the particle propagator class
 def animate(objects, particles, driver):
