@@ -403,7 +403,7 @@ def animate_camera(driver):
 
     # Animate Moving Camera 2
     for f in range(bcs.frame_end):
-        theta = f/bcs.frame_end*math.pi/2
+        theta = f/bcs.frame_end*math.pi/2+math.pi/5
         bcs.frame_current = f
         print("Configuring Moving2Camerara in frame: "+str(f)+" of "+str(bcs.frame_end))
         bcs.objects.active=bpy.data.objects['Moving2Camera']
@@ -422,7 +422,7 @@ def animate_camera(driver):
     for f in range(bcs.frame_end):
         theta = f/bcs.frame_end*math.pi/2
         bcs.frame_current = f
-        print("Configuring Moving1Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        print("Configuring Moving3Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
         bcs.objects.active=bpy.data.objects['Moving3Camera']
         x_cam=15*math.sin(theta)
         y_cam=15*math.cos(theta)
@@ -439,7 +439,7 @@ def animate_camera(driver):
     for f in range(bcs.frame_end):
         theta = f/bcs.frame_end*math.pi/2
         bcs.frame_current = f
-        print("Configuring Moving1Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        print("Configuring Moving4Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
         bcs.objects.active=bpy.data.objects['Moving4Camera']
         x_cam=15*math.sin(theta)
         y_cam=-15*math.cos(theta)
