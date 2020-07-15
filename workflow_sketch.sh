@@ -296,7 +296,15 @@ fi
 # Set cameras properly if MOSAIC is called
 if [[ $MOSAIC = "true" ]]; then
 
-    CAMERAS+=" OverviewCamera BarrelCamera SideCamera ForwardCamera"
+    CAMS=
+    for type in $CAMERAS; do # Add 'non-mosaic' selected cameras to variable CAMS
+      if [[ "${type}" != "OverviewCamera" && "${type}" != "BarrelCamera" \
+      && "${type}" != "Moving1Camera" && "${type}" != "ForwardCamera" ]]; then
+        CAMS+="${type} "
+      fi
+    done
+    # Set variable CAMERAS to contain all selected cameras + mosaic cameras
+    CAMERAS="${CAMS}OverviewCamera BarrelCamera Moving1Camera ForwardCamera"
 
 fi
 
@@ -344,7 +352,6 @@ else
       echo "Not building any detectors"
     fi
     echo "-----------------------------------"
-
 fi
 
 # Get number of frames
@@ -730,10 +737,10 @@ elif [ "$SAMPLE" = "false" ]; then
         fi
 
         # Setting input names for clips in order to make mosaic clip
-        INPUT_ONE=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==1')
-        INPUT_TWO=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==2')
-        INPUT_THREE=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==3')
-        INPUT_FOUR=$(ls *$EVENT_UNIQUE_ID*${FPS_DUR}.mp4 | awk 'NR==4')
+        INPUT_ONE=*${EVENT_UNIQUE_ID}*BarrelCamera*${FPS_DUR}.mp4
+        INPUT_TWO=*${EVENT_UNIQUE_ID}*ForwardCamera*${FPS_DUR}.mp4
+        INPUT_THREE=*${EVENT_UNIQUE_ID}*Moving1Camera*${FPS_DUR}.mp4
+        INPUT_FOUR=*${EVENT_UNIQUE_ID}*OverviewCamera*${FPS_DUR}.mp4
 
         ffmpeg -i ${INPUT_FOUR} -i ${INPUT_TWO} -i ${INPUT_THREE} -i ${INPUT_ONE} -filter_complex\
          "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"\
