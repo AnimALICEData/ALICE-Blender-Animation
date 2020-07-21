@@ -70,7 +70,7 @@ eval set -- "$PARSED"
 ##############################
 CAMERAS=Overview
 MOSAIC=false
-DURATION=10
+DURATION=5
 RADIUS=1
 RESOLUTION=100
 FPS=24
