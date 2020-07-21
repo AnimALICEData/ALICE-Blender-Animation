@@ -311,7 +311,7 @@ def createSceneParticles(particles, r_part=1, createTracks = False):
     clBlue = (0, 0, 1)
     clMagenta = (0.75, 0, 1)
     clYellow = (1, 1, 0)
-    clWhite = (255, 255, 255)
+    clWhite = (0.8, 0.8, 0.8)
     particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clMagenta, "Kaon": clYellow, "Unknown": clWhite}
 
     # Create Materials

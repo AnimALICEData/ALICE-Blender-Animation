@@ -554,10 +554,10 @@ elif [ "$SAMPLE" = "false" ]; then
       NUMBER_OF_PARTICLES=$(wc -l $LOCAL_FILE_WITH_DATA | \
                         awk '{ print $1 }')
 
-      AVERAGE_PZ=$(awk 'BEGIN {pzsum=0;n=0} {pzsum+=$8;n++} END {print sqrt(pzsum*pzsum/n/n)}'\
+      AVERAGE_PZ=$(awk 'BEGIN {pzsum=0;n=0} {pzsum+=$8;n++} END {printf "%f", sqrt(pzsum*pzsum/n/n)}'\
       ${LOCAL_FILE_WITH_DATA})
 
-      AVERAGE_PT=$(awk 'BEGIN {ptsum=0;n=0} {ptsum+=$9;n++} END {print ptsum/n}' \
+      AVERAGE_PT=$(awk 'BEGIN {ptsum=0;n=0} {ptsum+=$9;n++} END {printf "%f", ptsum/n}' \
       ${LOCAL_FILE_WITH_DATA})
 
       echo "File $LOCAL_FILE_WITH_DATA:"
