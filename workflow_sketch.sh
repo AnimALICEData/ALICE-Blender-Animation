@@ -563,7 +563,7 @@ elif [ "$SAMPLE" = "false" ]; then
       echo "File $LOCAL_FILE_WITH_DATA:"
       echo "Number of particles: $NUMBER_OF_PARTICLES"
       echo "Average Z momentum: $AVERAGE_PZ"
-      echo "Average transversal momentum $AVERAGE_PT"
+      echo "Average transversal momentum: $AVERAGE_PT"
 
       EVENT_COUNTER=$(more event_counter.txt)
 
@@ -675,6 +675,8 @@ elif [ "$SAMPLE" = "false" ]; then
       echo ./make-event-${EVENT_ID} >> scene-making
     done
 
+    mv blender-scenes ${BLENDER_OUTPUT}/blender-scenes
+
     timestamp "${UNIQUEID}, PARALLEL, SCENES, STARTING" >> $PROGRESS_LOG
 
   fi
@@ -693,7 +695,6 @@ elif [ "$SAMPLE" = "false" ]; then
 
   rm -f scene-making
   rm -f make-event-*
-  mv blender-scenes ${BLENDER_OUTPUT}/blender-scenes
 
   #####################################
   # Render scenes in selected cameras #
