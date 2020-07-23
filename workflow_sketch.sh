@@ -626,7 +626,7 @@ elif [ "$SAMPLE" = "false" ]; then
   # Remove event counter file
   rm -f event_counter.txt
 
-  if [[ $N_OF_EVENTS = 0 ]]; then
+  if ! $(ls | grep -q "${UNIQUEID}"); then
     timestamp "${UNIQUEID}, JOB FINISHED" >> $PROGRESS_LOG
     exit
   else
