@@ -738,10 +738,10 @@ elif [ "$SAMPLE" = "false" ]; then
         fi
 
         # Setting input names for clips in order to make mosaic clip
-        INPUT_ONE=*${EVENT_UNIQUE_ID}*BarrelCamera*${FPS_DUR}.mp4
-        INPUT_TWO=*${EVENT_UNIQUE_ID}*ForwardCamera*${FPS_DUR}.mp4
-        INPUT_THREE=*${EVENT_UNIQUE_ID}*Moving1Camera*${FPS_DUR}.mp4
-        INPUT_FOUR=*${EVENT_UNIQUE_ID}*OverviewCamera*${FPS_DUR}.mp4
+        INPUT_ONE=*${EVENT_UNIQUE_ID}.dat*BarrelCamera*${FPS_DUR}.mp4
+        INPUT_TWO=*${EVENT_UNIQUE_ID}.dat*ForwardCamera*${FPS_DUR}.mp4
+        INPUT_THREE=*${EVENT_UNIQUE_ID}.dat*Moving1Camera*${FPS_DUR}.mp4
+        INPUT_FOUR=*${EVENT_UNIQUE_ID}.dat*OverviewCamera*${FPS_DUR}.mp4
 
         ffmpeg -i ${INPUT_FOUR} -i ${INPUT_TWO} -i ${INPUT_THREE} -i ${INPUT_ONE} -filter_complex\
          "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"\
