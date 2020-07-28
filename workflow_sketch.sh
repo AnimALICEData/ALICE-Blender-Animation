@@ -3,8 +3,6 @@
 ##############################
 # Configurations             #
 ##############################
-# Put aliBuild in the PATH env var
-export PATH="/mnt/SSD/schnorr/python/bin:$PATH"
 # Directory where runAnalysis.C is placed
 export ALIROOT_SCRIPT_DIR=$(pwd)/aliRoot/
 # Directory where Blender scripts are
