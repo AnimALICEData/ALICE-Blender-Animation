@@ -1,13 +1,16 @@
+import math
+
 # Import Blender functions
 filename = os.path.join(os.path.basename(bpy.data.filepath), "blender_functions.py")
 exec(compile(open(filename).read(), filename, 'exec'))
 
-def init(unique_id,transp_par,detectors,blender_path):
+def init(unique_id,transp_par,detectors,blender_path,bgshade):
     bcs = bpy.context.scene
 
     # Configure Environment
     bcs.world.light_settings.use_environment_light = False
     bcs.world.light_settings.environment_energy = 0.1
+    bpy.context.scene.world.horizon_color = (bgshade,bgshade,bgshade)
 
     # Configure Stamp
     bcsr = bpy.context.scene.render
@@ -21,6 +24,8 @@ def init(unique_id,transp_par,detectors,blender_path):
     bcsr.use_stamp_filename = False
     bcsr.stamp_note_text = unique_id
     bcsr.use_stamp_note = True
+    bcsr.stamp_font_size = 40
+
 
     # Cleanup
     bpy.data.objects.remove(bpy.data.objects['Cube'])
@@ -58,7 +63,7 @@ def addALICE_ITS(transp_par,rgb_v):
     # ADD ITS INNER BARREL
 
     # Material
-    createMaterial("innerITS",R=rgb_v[2],G=0,B=rgb_v[2],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.7,emit=0,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("innerITS",R=rgb_v[2],G=0,B=rgb_v[2],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*1.4,emit=0,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add Inner ITS
     bpy.ops.mesh.primitive_cylinder_add(radius=0.0421, depth=0.271, view_align=False, enter_editmode=False, location=(0, 0, 0))
@@ -73,7 +78,7 @@ def addALICE_ITS(transp_par,rgb_v):
     # ADD ITS OUTER BARREL
 
     # Material
-    createMaterial("outerITS",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.4,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("outerITS",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.8,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # ADD ITS MIDDLE LAYERS
 
@@ -122,7 +127,7 @@ def addALICE_ITS(transp_par,rgb_v):
 def addALICE_TPC(transp_par,rgb_v):
 
     # Material
-    createMaterial("tpc",R=0,G=rgb_v[0],B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("tpc",R=0,G=rgb_v[0],B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.4,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add TPC
     bpy.ops.mesh.primitive_cylinder_add(radius=2.461, depth=5.1, view_align=False, enter_editmode=False, location=(0, 0, 0)) #bigger cylinder
@@ -136,10 +141,10 @@ def addALICE_TPC(transp_par,rgb_v):
 def importALICE_detailed_TPC(transp_par,blender_path):
 
     # Materials
-    createMaterial("tpc_part_1",R=0,G=1,B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
-    createMaterial("tpc_part_2",R=1,G=1,B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
-    createMaterial("tpc_part_3",R=1,G=0,B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
-    createMaterial("tpc_part_4",R=0,G=1,B=1,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.2,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("tpc_part_1",R=0,G=1,B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.4,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("tpc_part_2",R=1,G=1,B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.4,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("tpc_part_3",R=1,G=0,B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.4,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("tpc_part_4",R=0,G=1,B=1,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.4,emit=0.3,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Import detailed TPC
     #
@@ -159,7 +164,7 @@ def importALICE_detailed_TPC(transp_par,blender_path):
 def addALICE_TRD(transp_par,rgb_v):
 
     # Material
-    createMaterial("TRD",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.15,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("TRD",R=rgb_v[3],G=0,B=rgb_v[3],shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.3,emit=0.8,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add "hole" to subtract from the middle
     bpy.ops.mesh.primitive_cylinder_add(radius=2.9, depth=6, vertices=18, view_align=False, enter_editmode=False, location=(0, 0, 0)) #smaller cylinder
@@ -213,7 +218,7 @@ def addALICE_TRD(transp_par,rgb_v):
 def addALICE_EMCal(transp_par,rgb_v):
 
     # Material
-    createMaterial("emcal",R=rgb_v[1],G=rgb_v[1],B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.05,emit=1.5,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
+    createMaterial("emcal",R=rgb_v[1],G=rgb_v[1],B=0,shadows=False,cast_shadows=False,transparency=True,alpha=transp_par*0.1,emit=1.5,specular_alpha=0,fresnel_factor=5,fresnel=0.3)
 
     # Add cylinder for EMCal
     bpy.ops.mesh.primitive_cylinder_add(radius=4.7, depth=5.1, vertices=19, view_align=False, enter_editmode=False, location=(0, 0, 0))
@@ -276,9 +281,29 @@ def addCameras():
     bpy.context.object.name = "SideCamera"
     bpy.context.object.data.lens = 9
 
+    # Moving Camera 1
+    bpy.ops.object.camera_add()
+    bpy.context.object.name = "Moving1Camera"
+    bpy.context.object.data.lens = 26
+
+    # Moving Camera 2
+    bpy.ops.object.camera_add()
+    bpy.context.object.name = "Moving2Camera"
+    bpy.context.object.data.lens = 26
+
+    # Moving Camera 3
+    bpy.ops.object.camera_add()
+    bpy.context.object.name = "Moving3Camera"
+    bpy.context.object.data.lens = 26
+
+    # Moving Camera 4
+    bpy.ops.object.camera_add()
+    bpy.context.object.name = "Moving4Camera"
+    bpy.context.object.data.lens = 26
+
 # Function that creates Blender Objects from input list of particles.
 ## Returns a list of blender objects
-def createSceneParticles(particles, createTracks = False):
+def createSceneParticles(particles, r_part=1, createTracks = False):
     # Associate particles and colors
     particle_types = ["Electron","Pion","Muon","Proton","Kaon","Unknown"]
     clRed = (1, 0, 0)
@@ -286,7 +311,7 @@ def createSceneParticles(particles, createTracks = False):
     clBlue = (0, 0, 1)
     clMagenta = (0.75, 0, 1)
     clYellow = (1, 1, 0)
-    clWhite = (255, 255, 255)
+    clWhite = (0.8, 0.8, 0.8)
     particle_colors = {"Electron":clRed, "Pion":clGreen, "Muon":clBlue, "Proton":clMagenta, "Kaon": clYellow, "Unknown": clWhite}
 
     # Create Materials
@@ -301,6 +326,13 @@ def createSceneParticles(particles, createTracks = False):
     # Create blender spheres (particles)
     blender_particles=[]
     n_particles=len(particles)
+
+    # Define particle radius based on multiplicity
+    if n_particles > 15000:
+        r_part=0.01*r_part
+    else:
+        r_part=0.05-(0.04/15000)*n_particles*r_part
+
     for particle in particles:
         this_type=particle.p_type
         print("Adding Sphere - Particle " + str(len(blender_particles)+1)+" of "+str(n_particles)+" - "+this_type)
@@ -327,7 +359,7 @@ def createSceneParticles(particles, createTracks = False):
                 curveTrack.resolution_u = 2
 
                 curveTrack.fill_mode = 'FULL'
-                curveTrack.bevel_depth = 0.02
+                curveTrack.bevel_depth = 0.4*r_part # Tracks are 40% the thickness of particles
                 curveTrack.bevel_resolution = 3
 
 
@@ -349,12 +381,83 @@ def createSceneParticles(particles, createTracks = False):
 
     return blender_particles, blender_tracks
 
+def animate_camera(driver):
+    bcs = bpy.context.scene
+
+    # Animate Moving Camera 1
+    for f in range(bcs.frame_end):
+        theta = f/bcs.frame_end*math.pi/2
+        bcs.frame_current = f
+        print("Configuring Moving1Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['Moving1Camera']
+        x_cam=15*math.sin(theta)
+        y_cam=7
+        z_cam=15*math.cos(theta)
+        x_rot_cam=-0.427606
+        y_rot_cam=theta
+        z_rot_cam=0
+        bpy.context.object.location=(x_cam,y_cam,z_cam)
+        bpy.context.object.keyframe_insert(data_path='location')
+        bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
+        bpy.context.object.keyframe_insert(data_path='rotation_euler')
+
+    # Animate Moving Camera 2
+    for f in range(bcs.frame_end):
+        theta = f/bcs.frame_end*math.pi/2+math.pi/5
+        bcs.frame_current = f
+        print("Configuring Moving2Camerara in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['Moving2Camera']
+        x_cam=15*math.sin(theta)
+        y_cam=7
+        z_cam=-15*math.cos(theta)
+        x_rot_cam=-0.427606
+        y_rot_cam=math.pi-theta
+        z_rot_cam=0
+        bpy.context.object.location=(x_cam,y_cam,z_cam)
+        bpy.context.object.keyframe_insert(data_path='location')
+        bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
+        bpy.context.object.keyframe_insert(data_path='rotation_euler')
+
+    # Animate Moving Camera 3
+    for f in range(bcs.frame_end):
+        theta = f/bcs.frame_end*math.pi/2
+        bcs.frame_current = f
+        print("Configuring Moving3Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['Moving3Camera']
+        x_cam=15*math.sin(theta)
+        y_cam=15*math.cos(theta)
+        z_cam=0
+        x_rot_cam=-math.pi/2
+        y_rot_cam=math.pi/2
+        z_rot_cam=-theta
+        bpy.context.object.location=(x_cam,y_cam,z_cam)
+        bpy.context.object.keyframe_insert(data_path='location')
+        bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
+        bpy.context.object.keyframe_insert(data_path='rotation_euler')
+
+    # Animate Moving Camera 4
+    for f in range(bcs.frame_end):
+        theta = f/bcs.frame_end*math.pi/2
+        bcs.frame_current = f
+        print("Configuring Moving4Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
+        bcs.objects.active=bpy.data.objects['Moving4Camera']
+        x_cam=15*math.sin(theta)
+        y_cam=-15*math.cos(theta)
+        z_cam=0
+        x_rot_cam=math.pi/2
+        y_rot_cam=math.pi/2
+        z_rot_cam=theta
+        bpy.context.object.location=(x_cam,y_cam,z_cam)
+        bpy.context.object.keyframe_insert(data_path='location')
+        bpy.context.object.rotation_euler=(x_rot_cam,y_rot_cam,z_rot_cam)
+        bpy.context.object.keyframe_insert(data_path='rotation_euler')
+
 # Function that animates the scene using the particle propagator class
 def animate(objects, particles, driver):
     bcs = bpy.context.scene
 
     #Animate particles
-    for f in range(1, bcs.frame_end+1):
+    for f in range(bcs.frame_end):
         t = driver.delta_t*f
         bcs.frame_current = f
         print("Configuring particles in frame: "+str(f)+" of "+str(bcs.frame_end))
@@ -368,8 +471,8 @@ def animate_tracks(tracks, particles, driver):
     bcs = bpy.context.scene
 
     #Animate tracks
-    for f in range(1, bcs.frame_end+1):
-        t = driver.delta_t*f
+    for f in range(bcs.frame_end):
+        t = driver.delta_t*(f+1) # choosing (f+1) instead of (f) removes gap between track and particle
         bcs.frame_current = f
         print("Configuring tracks in frame: "+ str(f) +" of "+ str(bcs.frame_end))
         for point in range(f,bcs.frame_end+1):
