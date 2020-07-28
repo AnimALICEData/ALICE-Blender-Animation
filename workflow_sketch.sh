@@ -10,11 +10,11 @@ export ALIROOT_SCRIPT_DIR=$(pwd)/aliRoot/
 # Directory where Blender scripts are
 export BLENDER_SCRIPT_DIR=$(pwd)/animate/
 # alienv working directory
-export ALIENV_WORK_DIR=/home/breno/alice/sw
+export ALIENV_WORK_DIR=$(pwd)/../sw
 export ALIENV_OS_SPEC=ubuntu1804_x86-64
 export ALIENV_ID=AliPhysics/latest-aliroot5-user
 # Put Blender 2.79b in the PATH env var
-export PATH="/home/schnorr/install/blender-2.79-linux-glibc219-x86_64/:$PATH"
+export PATH="$(pwd)/../blender-2.79-linux-glibc219-x86_64/:$PATH"
 
 # Progress log file
 export PROGRESS_LOG=$(pwd)/progress.log
