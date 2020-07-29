@@ -651,6 +651,7 @@ elif [ "$SAMPLE" = "false" ]; then
         echo "Number of particles: $NUMBER_OF_PARTICLES" >> $EXE_LOG
         echo "Average Z momentum: $AVERAGE_PZ" >> $EXE_LOG
         echo "Average transversal momentum: $AVERAGE_PT" >> $EXE_LOG
+        echo " " >> $EXE_LOG
 
       fi
 
