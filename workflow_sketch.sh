@@ -17,6 +17,12 @@ export PATH="$(pwd)/../blender-2.79-linux-glibc219-x86_64/:$PATH"
 # Progress log file
 export PROGRESS_LOG=$(pwd)/progress.log
 
+# Execution log file
+EXE_LOG_FILE=$(date +"%y-%m-%d-%T")
+export EXE_LOG=$(pwd)/execution-${EXE_LOG_FILE}.log
+echo "Execution ${EXE_LOG_FILE}" >> $EXE_LOG
+echo " " >> $EXE_LOG
+
 if [[ -f $PROGRESS_LOG ]]; then
   if grep -q "JOB FINISHED" $PROGRESS_LOG; then
     rm $PROGRESS_LOG
@@ -330,26 +336,55 @@ else
     echo "Background Shade: ${BGSHADE}"
     echo "-----------------------------------"
     echo "------------ Detectors ------------"
+    echo "-------- Parsed parameters --------" >> $EXE_LOG
+    echo "URL: $URL" >> $EXE_LOG
+    echo "Download: $DOWNLOAD" >> $EXE_LOG
+    echo "Sample: $SAMPLE" >> $EXE_LOG
+    echo "Transparency Parameter: $TRANSPARENCY" >> $EXE_LOG
+    echo "Duration: $DURATION" >> $EXE_LOG
+    echo "Particle Radius Scale: $RADIUS" >> $EXE_LOG
+    echo "Resolution: $RESOLUTION" >> $EXE_LOG
+    echo "FPS: $FPS" >> $EXE_LOG
+    echo "Max particles: ${MAX_PARTICLES}" >> $EXE_LOG
+    echo "Min particles: ${MIN_PARTICLES}" >> $EXE_LOG
+    echo "Number of events: ${N_OF_EVENTS}" >> $EXE_LOG
+    echo "Min Average Z Momentum: ${MIN_AVG_PZ}" >> $EXE_LOG
+    echo "Min Average Transversal Momentum: ${MIN_AVG_PT}" >> $EXE_LOG
+    echo "Cameras: $CAMERAS" >> $EXE_LOG
+    echo "Mosaic: $MOSAIC" >> $EXE_LOG
+    echo "Picture Percentage: ${PICPCT}%" >> $EXE_LOG
+    echo "Background Shade: ${BGSHADE}" >> $EXE_LOG
+    echo "-----------------------------------" >> $EXE_LOG
+    echo "------------ Detectors ------------" >> $EXE_LOG
     if [[ $ITS = 1 ]]; then
       echo "Building ITS"
+      echo "Building ITS" >> $EXE_LOG
     fi
     if [[ $DETAILED_TPC = 1 ]]; then
       echo "Building detailed TPC"
+      echo "Building detailed TPC" >> $EXE_LOG
     else
       if [[ $TPC = 1 ]]; then
         echo "Building TPC"
+        echo "Building TPC" >> $EXE_LOG
       fi
     fi
     if [[ $TRD = 1 ]]; then
       echo "Building TRD"
+      echo "Building TRD" >> $EXE_LOG
     fi
     if [[ $EMCAL = 1 ]]; then
       echo "Building EMCAL"
+      echo "Building EMCAL" >> $EXE_LOG
     fi
     if [[ $TPC = 0 && $TPC = 0 && $TRD = 0 && $EMCAL = 0 ]]; then
       echo "Not building any detectors"
+      echo "Not building any detectors" >> $EXE_LOG
     fi
     echo "-----------------------------------"
+    echo "-----------------------------------" >> $EXE_LOG
+    echo " " >> $EXE_LOG
+
 fi
 
 # Get number of frames
@@ -611,6 +646,12 @@ elif [ "$SAMPLE" = "false" ]; then
 
         echo "This event will be animated. Continue."
 
+        # Print information about selected events in execution file
+        echo "File $LOCAL_FILE_WITH_DATA:" >> $EXE_LOG
+        echo "Number of particles: $NUMBER_OF_PARTICLES" >> $EXE_LOG
+        echo "Average Z momentum: $AVERAGE_PZ" >> $EXE_LOG
+        echo "Average transversal momentum: $AVERAGE_PT" >> $EXE_LOG
+
       fi
 
       echo " " # Skip line to make it neat
@@ -624,6 +665,7 @@ elif [ "$SAMPLE" = "false" ]; then
   # Remove event counter file
   rm -f event_counter.txt
 
+  # No text data files inside animation directory means job is done
   if ! $(ls | grep -q "${UNIQUEID}"); then
     timestamp "${UNIQUEID}, JOB FINISHED" >> $PROGRESS_LOG
     exit
@@ -640,7 +682,6 @@ elif [ "$SAMPLE" = "false" ]; then
 
     rm -f scene-making
     rm -f make-event-*
-    rm -f blender-scenes
 
     for LOCAL_FILE_WITH_DATA in $EXTRACTED_FILES; do
 
@@ -656,7 +697,7 @@ elif [ "$SAMPLE" = "false" ]; then
       echo "timestamp() {" >> make-event-${EVENT_ID}
       echo "  date +\"%y-%m-%d, %T, \$1\"" >> make-event-${EVENT_ID}
       echo "}" >> make-event-${EVENT_ID}
-      echo timestamp \"${UNIQUEID}, ${EVENT_ID}, BLENDER SCENE, STARTING, ${NUMBER_OF_PARTICLES}\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
+      echo timestamp \"${UNIQUEID}, EVENT ${EVENT_ID}, BLENDER SCENE, STARTING, ${NUMBER_OF_PARTICLES} PARTICLES\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
       echo blender -noaudio --background -P animate_particles.py -- -radius=${RADIUS} \
   -duration=${DURATION} -datafile=\'${LOCAL_FILE_WITH_DATA}\' \
   -n_event=${EVENT_ID} -simulated_t=0.03 -fps=${FPS} -resolution=${RESOLUTION} \
@@ -664,16 +705,11 @@ elif [ "$SAMPLE" = "false" ]; then
   -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
   -blendersave=1 -bgshade=${BGSHADE} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
   -output_path=\'${BLENDER_OUTPUT}\' >> make-event-${EVENT_ID}
-      echo timestamp \"${UNIQUEID}, ${EVENT_ID}, BLENDER SCENE, FINISHED, ${NUMBER_OF_PARTICLES}\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
-
-      # Write text inside "make-event-N" on common file for all events for registering sake
-      more make-event-${EVENT_ID} >> blender-scenes
+      echo timestamp \"${UNIQUEID}, EVENT ${EVENT_ID}, BLENDER SCENE, FINISHED, ${NUMBER_OF_PARTICLES} PARTICLES\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
 
       # Write command to run code inside "make-event-N" on "scene-making" file
       echo ./make-event-${EVENT_ID} >> scene-making
     done
-
-    mv blender-scenes ${BLENDER_OUTPUT}/blender-scenes
 
     timestamp "${UNIQUEID}, PARALLEL, SCENES, STARTING" >> $PROGRESS_LOG
 
