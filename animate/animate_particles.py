@@ -47,6 +47,7 @@ parser.add_argument('-bgshade','--bgshade')
 parser.add_argument('-tpc_blender_path','--tpc_blender_path')
 parser.add_argument('-detailed_tpc','--detailed_tpc')
 parser.add_argument('-output_path','--output_path')
+parser.add_argument('-direction','--direction')
 args = parser.parse_args()
 
 bpy.context.user_preferences.view.show_splash = False
@@ -68,6 +69,7 @@ detectors = [int(args.its),int(args.tpc),int(args.trd),int(args.emcal),int(args.
 blendersave = int(args.blendersave) # 1 (save Blender file) or 0 (don't)
 bgshade = float(args.bgshade)
 tpc_blender_path = str(args.tpc_blender_path) # path to 'animate' directory, where .blend file for detailed TPC is saved
+direction = int(args.direction)
 
 # Configure Output
 outputPath = str(args.output_path)+"/"
@@ -94,7 +96,7 @@ blender_particles, blender_tracks = createSceneParticles(particles,r_part,create
 #Animate scene using driver
 animate(blender_particles,particles,driver)
 animate_tracks(blender_tracks,particles,driver)
-animate_camera(driver)
+animate_camera(driver,direction)
 
 bpy.context.scene.frame_current = 24
 

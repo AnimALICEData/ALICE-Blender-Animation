@@ -381,7 +381,8 @@ def createSceneParticles(particles, r_part=1, createTracks = False):
 
     return blender_particles, blender_tracks
 
-def animate_camera(driver):
+def animate_camera(driver,direction=0): # The direction parameter sets to which
+                                      # side Moving Camera 1 rotates
     bcs = bpy.context.scene
 
     # Animate Moving Camera 1
@@ -390,11 +391,16 @@ def animate_camera(driver):
         bcs.frame_current = f
         print("Configuring Moving1Camera in frame: "+str(f)+" of "+str(bcs.frame_end))
         bcs.objects.active=bpy.data.objects['Moving1Camera']
-        x_cam=15*math.sin(theta)
+        if direction == 0:
+            x_cam=15*math.sin(theta)
+            z_cam=15*math.cos(theta)
+            y_rot_cam=theta
+        else:
+            x_cam=15*math.cos(theta)
+            z_cam=15*math.sin(theta)
+            y_rot_cam=math.pi/2-theta
         y_cam=7
-        z_cam=15*math.cos(theta)
         x_rot_cam=-0.427606
-        y_rot_cam=theta
         z_rot_cam=0
         bpy.context.object.location=(x_cam,y_cam,z_cam)
         bpy.context.object.keyframe_insert(data_path='location')

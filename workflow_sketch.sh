@@ -18,9 +18,9 @@ export PATH="$(pwd)/../blender-2.79-linux-glibc219-x86_64/:$PATH"
 export PROGRESS_LOG=$(pwd)/progress.log
 
 # Execution log file
-EXE_LOG_FILE=$(date +"%y-%m-%d-%T")
-export EXE_LOG=$(pwd)/execution-${EXE_LOG_FILE}.log
-echo "Execution ${EXE_LOG_FILE}" >> $EXE_LOG
+DATE_TIME=$(date +"%y-%m-%d-%T")
+export EXE_LOG=$(pwd)/execution-${DATE_TIME}.log
+echo "Execution ${DATE_TIME}" >> $EXE_LOG
 echo " " >> $EXE_LOG
 
 if [[ -f $PROGRESS_LOG ]]; then
@@ -683,6 +683,8 @@ elif [ "$SAMPLE" = "false" ]; then
     rm -f scene-making
     rm -f make-event-*
 
+    CAM_ROT=0 # Binary variable that sets to which side Moving Camera 1 rotates
+
     for LOCAL_FILE_WITH_DATA in $EXTRACTED_FILES; do
 
       EVENT_ID=$(echo $LOCAL_FILE_WITH_DATA | \
@@ -704,8 +706,11 @@ elif [ "$SAMPLE" = "false" ]; then
   -transparency=${TRANSPARENCY} -stamp_note=\'${EVENT_UNIQUE_ID}\' -its=${ITS} \
   -tpc=${TPC} -trd=${TRD} -emcal=${EMCAL} -detailed_tpc=${DETAILED_TPC} \
   -blendersave=1 -bgshade=${BGSHADE} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
-  -output_path=\'${BLENDER_OUTPUT}\' >> make-event-${EVENT_ID}
+  -output_path=\'${BLENDER_OUTPUT}\' -direction=${CAM_ROT} >> make-event-${EVENT_ID}
       echo timestamp \"${UNIQUEID}, EVENT ${EVENT_ID}, BLENDER SCENE, FINISHED, ${NUMBER_OF_PARTICLES} PARTICLES\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
+
+      # Switch value of CAM_ROT
+      if [[ ${CAM_ROT} == 0 ]]; then CAM_ROT=1; else CAM_ROT=0; fi
 
       # Write command to run code inside "make-event-N" on "scene-making" file
       echo ./make-event-${EVENT_ID} >> scene-making
@@ -744,13 +749,13 @@ elif [ "$SAMPLE" = "false" ]; then
 
     for type in $CAMERAS; do
 
-      if ! grep -q "${UNIQUEID}, ${EVENT_ID}, ${type}, FINISHED" $PROGRESS_LOG; then
+      if ! grep -q "${UNIQUEID}, EVENT ${EVENT_ID}, ${type}, FINISHED" $PROGRESS_LOG; then
 
-        timestamp "${UNIQUEID}, ${EVENT_ID}, ${type}, STARTING, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
+        timestamp "${UNIQUEID}, EVENT ${EVENT_ID}, ${type}, STARTING, $NUMBER_OF_PARTICLES PARTICLES" >> $PROGRESS_LOG
         blender -noaudio --background -P render.py -- -cam ${type} -datafile\
          "${LOCAL_FILE_WITH_DATA}" -n_event ${EVENT_ID} -pic_pct ${PICPCT} -output_path "${BLENDER_OUTPUT}"
 
-        timestamp "${UNIQUEID}, ${EVENT_ID}, ${type}, FINISHED, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
+        timestamp "${UNIQUEID}, EVENT ${EVENT_ID}, ${type}, FINISHED, $NUMBER_OF_PARTICLES PARTICLES" >> $PROGRESS_LOG
 
       fi
 
@@ -779,7 +784,10 @@ elif [ "$SAMPLE" = "false" ]; then
 
         ffmpeg -i ${INPUT_FOUR} -i ${INPUT_TWO} -i ${INPUT_THREE} -i ${INPUT_ONE} -filter_complex\
          "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"\
-         -map "[v]" ${EVENT_UNIQUE_ID}_Mosaic.mp4
+         -map "[v]" ${EVENT_UNIQUE_ID}_${FPS_DUR}FPS_Mosaic.mp4
+
+        # Add Mosaic to list to make video strip containing all mosaics
+        echo file \'${EVENT_UNIQUE_ID}_${FPS_DUR}FPS_Mosaic.mp4\' >> videostrip.txt
 
         timestamp "${UNIQUEID}, ${EVENT_ID}, MOSAIC, FINISHED, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
 
@@ -788,20 +796,27 @@ elif [ "$SAMPLE" = "false" ]; then
 
     fi
 
-    #######################################################
-    # Move text data files to where animations are stored #
-    #######################################################
-    if ! grep -q "${UNIQUEID}, ${EVENT_ID}, TEXT DATA MOVED to final location" $PROGRESS_LOG; then
-
-      # Move processed file to final location
-      mv $LOCAL_FILE_WITH_DATA ${BLENDER_OUTPUT}/$LOCAL_FILE_WITH_DATA
-      timestamp "${UNIQUEID}, ${EVENT_ID}, TEXT DATA MOVED to final location" >> $PROGRESS_LOG
-
-    fi
-
     echo "EVENT ${EVENT_UNIQUE_ID} DONE with FILE $LOCAL_FILE_WITH_DATA."
 
+    # Remove text data files
+    rm -f $LOCAL_FILE_WITH_DATA
+
   done
+
+  if [ "$MOSAIC" = "true" ]; then
+
+    if ! grep -q "${UNIQUEID}, VIDEO STRIP, FINISHED" $PROGRESS_LOG; then
+
+      pushd ${BLENDER_OUTPUT}
+      timestamp "${UNIQUEID}, VIDEO STRIP, STARTING" >> $PROGRESS_LOG
+
+      ffmpeg -f concat -safe 0 -i videostrip.txt -c copy Mosaic_VideoStrip_${DATE_TIME}.mp4
+      rm -f videostrip.txt
+
+      timestamp "${UNIQUEID}, VIDEO STRIP, FINISHED" >> $PROGRESS_LOG
+      popd
+    fi
+  fi
   popd
 
   ########################
