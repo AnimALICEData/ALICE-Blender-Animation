@@ -681,7 +681,6 @@ elif [ "$SAMPLE" = "false" ]; then
   ################################################
   if ! grep -q "${UNIQUEID}, PARALLEL, SCENES, STARTING" $PROGRESS_LOG; then
 
-    rm -f scene-making
     rm -f make-event-*
 
     CAM_ROT=0 # Binary variable that sets to which side Moving Camera 1 rotates
@@ -709,12 +708,11 @@ elif [ "$SAMPLE" = "false" ]; then
   -blendersave=1 -bgshade=${BGSHADE} -tpc_blender_path=${BLENDER_SCRIPT_DIR} \
   -output_path=\'${BLENDER_OUTPUT}\' -direction=${CAM_ROT} >> make-event-${EVENT_ID}
       echo timestamp \"${UNIQUEID}, EVENT ${EVENT_ID}, BLENDER SCENE, FINISHED, ${NUMBER_OF_PARTICLES} PARTICLES\" \>\> $PROGRESS_LOG >> make-event-${EVENT_ID}
+      echo rm -f make-event-${EVENT_ID} >> make-event-${EVENT_ID}
 
       # Switch value of CAM_ROT
       if [[ ${CAM_ROT} == 0 ]]; then CAM_ROT=1; else CAM_ROT=0; fi
 
-      # Write command to run code inside "make-event-N" on "scene-making" file
-      echo ./make-event-${EVENT_ID} >> scene-making
     done
 
     timestamp "${UNIQUEID}, PARALLEL, SCENES, STARTING" >> $PROGRESS_LOG
@@ -725,6 +723,14 @@ elif [ "$SAMPLE" = "false" ]; then
   # Make Blender scenes in parallel #
   ###################################
   if ! grep -q "${UNIQUEID}, PARALLEL, SCENES, FINISHED" $PROGRESS_LOG; then
+
+    MAKE_EVENT_FILES=$(ls -1 make-event-*) # List of all files 'make-event-n'
+    rm -f scene-making
+
+    # Write command to run code inside "make-event-N" on "scene-making" file
+    for FILE in $MAKE_EVENT_FILES; do
+      echo ./${FILE} >> scene-making
+    done
 
     chmod +x make-event-*
     parallel < scene-making
