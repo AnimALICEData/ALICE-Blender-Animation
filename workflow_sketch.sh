@@ -12,7 +12,7 @@ export ALIENV_WORK_DIR=$(pwd)/../sw
 export ALIENV_OS_SPEC=ubuntu1804_x86-64
 export ALIENV_ID=AliPhysics/latest-aliroot5-user
 # Put Blender 2.79b in the PATH env var
-export PATH="$(pwd)/../blender-2.79-linux-glibc219-x86_64/:$PATH"
+export PATH="$(pwd)/../blender-2.79b-linux-glibc219-x86_64/:$PATH"
 
 # Progress log file
 export PROGRESS_LOG=$(pwd)/progress.log
@@ -737,7 +737,7 @@ elif [ "$SAMPLE" = "false" ]; then
       # ;login: The USENIX Magazine, February 2011:42-47.
       chmod +x make-event-*
       parallel < scene-making
-      
+
     fi
     timestamp "${UNIQUEID}, PARALLEL, SCENES, FINISHED" >> $PROGRESS_LOG
 
