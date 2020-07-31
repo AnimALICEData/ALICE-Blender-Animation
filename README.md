@@ -71,6 +71,14 @@ Extract files from package:
 $ tar -jxvf blender-2.79b-linux-glibc219-x86_64.tar.bz2
 ```
 
+Now, install FFmpeg, a free and open-source software project designed for handling video, 
+audio, and other multimedia files and streams.
+
+```bash
+$ sudo apt update
+$ sudo apt install ffmpeg
+```
+
 The next step is to install Aliroot, which is CERN's official software for ALICE physics analysis, so you are able to process the relevant information
 for the events.
 
@@ -87,14 +95,30 @@ Here is the sequence of steps for installing Aliroot:
 cd ~/alice
 aliBuild init AliPhysics@master
 ```
+
 3) Verify dependencies (Optional)
 
 ```bash
 $ aliDoctor AliPhysics
 ```
+
 4) Build AliPhysics with aliroot5 (this may take a long time)
+
 ```bash
 aliBuild build AliPhysics --defaults user -z aliroot5
+```
+
+To make sure Aliroot was installed successfully, enter the ALICE environment, alienv:
+
+```bash
+$ alienv enter AliPhysics/latest-aliroot5-user
+```
+
+In order to see how this is supposed to go, you may want to check the instructions on [how to open a TBrowser](#TBrowser), further down.
+To exit, simply enter:
+
+```bash
+$ exit
 ```
 
 # Running the code <a name="run-code"></a>
@@ -345,7 +369,7 @@ $ ./workflow_sketch.sh -n 0
 
 ![5-no-event](documentation/5-no-event.gif)
 
-Then you must run Aliroot so you can browse *.root* files through what is called a TBrowser:
+Then you must run Aliroot so you can browse *.root* files through what is called a TBrowser: <a name="TBrowser"></a>
 
 ```bash
 $ alienv enter AliPhysics/latest-aliroot5-user
@@ -370,3 +394,15 @@ A window should open, where you can access the histograms in the path indicated:
 
 There you have it: a histogram that shows how many events are within each interval of our desired quantity, in GeV/c. That way,
 you can have an idea how its distribution behaves inside a given ESD, thus know what values should "do the trick".
+
+To exit ROOT, enter
+
+```bash
+$ exit()
+```
+
+Then, to exit the ALICE environment (alienv):
+
+```bash
+$ exit
+```
