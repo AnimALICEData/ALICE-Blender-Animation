@@ -14,6 +14,7 @@
     2. [One event, one camera](#one-one)
     3. [Mosaic](#mosaic)
     4. [Minimum Average Pz option](#minavgpz)
+6. [License](#license)
 
 
 ![cover](documentation/cover.png)
@@ -406,3 +407,9 @@ Then, to exit the ALICE environment (alienv):
 ```bash
 $ exit
 ```
+
+# License  <a name="license"></a>
+
+This project is licensed under the GNU General Public License v3.0
+
+A copy of this license is provided in the [LICENSE](LICENSE) file.
