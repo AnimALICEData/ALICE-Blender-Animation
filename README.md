@@ -1,5 +1,9 @@
 # ALICE Open Data Blender animation
 
+[[_TOC_]]
+
+![cover](documentation/cover.png)
+
 ## Project Description
 
 This project has the purpose of generating 3D animations of ALICE particle collision events using data obtained from CERN's Open Data Portal. ALICE stands for "A Large Ion Collider Experiment" and it is a particle detector inside the LHC - Large Hadron Collider -, the world's largest and highest-energy particle collider, located beneath the France–Switzerland border. CERN stands for *Organisation européenne pour la recherche nucléaire*, which is French for European Organization for Nuclear Research, and it is the home of LHC. CERN's Open Data Portal is an open online platform that contains data files from particle physics; those include the ESDs - Event Summary Data files -, which hold information about ALICE events and are of great help making the animations look like real representations of such events.
@@ -79,7 +83,9 @@ $ aliDoctor AliPhysics
 aliBuild build AliPhysics --defaults user -z aliroot5
 ```
 
-After that, you are ready to pick an ESD file at CERN's Open Data Portal. ESD files regarding the ALICE experiment can be found on
+# Running the code
+
+At this point, you are ready to pick an ESD file at CERN's Open Data Portal. ESD files regarding the ALICE experiment can be found on
 http://opendata.cern.ch/search?page=1&size=20&experiment=ALICE. You can either manually download your ESD file and save it in the
 project's repository directory (in the same path as this `README.md` file), under the name `AliESDs.root`, or have your ESD be downloaded automatically, as explained
 further.
@@ -112,12 +118,33 @@ In case you have chosen the automatic ESD download option, run the code as:
 ./workflow_sketch.sh --url <URL> --download
 ```
 
-where ``<URL>`` is the URL address for the chosen ESD file. Of course, you can add other options as well, if you wish. Here's another working example, including
+where ``<URL>`` is the URL address for the chosen ESD file. Of course, you can add other options as well, if you wish.
+
+Here's an example of the procedure, using an ESD from the list identified as *Pb-Pb data sample at the collision energy of 2.76 TeV per nucleon pair from run number 139465*, at CERN's Open Data Portal:
+
+1. Go to http://opendata.cern.ch/record/1106 and scroll until *File indexes*, then click "List Files":
+
+![list-files](documentation/list-files.png)
+
+2. Pick an ESD of your choice, then right-click the download arrow and copy its URL:
+
+![copy-link](documentation/copy-link.png)
+
+3. In the terminal, run the main script appropriately:
+
+![1-urlESD](documentation/1-urlESD.gif)
+
+Here's another working example, including
 the download option:
 
 ```bash
 ./workflow_sketch.sh --url http://opendata.cern.ch/record/1103/files/assets/alice/2010/LHC10h/000139173/ESD/0004/AliESDs.root --download -t 4 --cameras Overview,Forward
 ```
+
+Needless to say, if you run the code again after you've already downloaded the ESD the first time, there is no longer need
+to type in the `--download` and `--url` options.
+
+## Workflow options
 
    ---------------------------------------------------------------------------------------------------------------------
      Option             Entry                     Action                                                 Standard Value
@@ -161,7 +188,7 @@ the download option:
      --fps              Positive integer          Sets animation number of frames per second                   24
 
      --transparency     Positive number           Sets detector transparency, where zero is full                1
-                                                  transparency and 1 is standard transparency  
+                                                  transparency and 1 is standard transparency
 
      -c ou --cameras    Comma-separated list      Sets cameras to animate events with                       Overview
                         (with no spaces) of
@@ -169,12 +196,12 @@ the download option:
                         Barrel, Forward,
                         Overview, Side,
                         Moving1, Moving2,
-                        Moving3, Moving4    
+                        Moving3, Moving4
 
      --mosaic           none                      Makes animations in four different cameras (Barrel,           -
                                                   Forward, Overview and Moving1) and combines them
                                                   into a single 2x2 clip containing all four
-                                                  perspectives.  
+                                                  perspectives.
 
      --picpct           Whole number from         Informs percentage of animation to take HD picture,          80
                         1 to 100                  saved along with the clip.
@@ -184,12 +211,13 @@ the download option:
 
      -a ou --sample     none                      Creates a sample Blender animation of Event 2 from            -
                                                   URL http://opendata.cern.ch/record/1102/files/asset
-                                                  s/alice/2010/LHC10h/000139038/ESD/0001/AliESDs.root   
+                                                  s/alice/2010/LHC10h/000139038/ESD/0001/AliESDs.root
 
      --its              none                      Removes ITS detector from animation                           -
 
      --detailedtpc      none                      Includes a more detailed version of the TPC                   -
-                                                  geometry, made by researcher Stefan Rossegger  
+                                                  geometry, made by researcher Stefan Rossegger
+                                                  (stefan.rossegger@gmail.com)
 
      --tpc              none                      Removes TPC detector from animation                           -
 
@@ -215,3 +243,92 @@ For generating a default animation, simply run the script `workflow_sketch.sh` i
 
 After this, a single default animation should be ready. It will be available inside the `blender` directory, in *.mp4* format. Enjoy! You may want to check the table
 above for information on the using options.
+
+# Running Examples
+
+Here are some running examples to illustrate how to run the code and make some animations.
+
+## Choosing multiplicity range
+
+An event's multiplicity is the number of particles in it. In the following example, the code only animates events with multiplicity
+within the specified range, which is a minimum of 20 particles and a maximum of 300:
+
+![2-min-max](documentation/2-min-max.gif)
+
+## One event, one camera
+
+One of the simplest ways to run the code is to just animate one event, using only one of the available cameras. The ```bash -m ``` option is just an alternative way to use the --maxparticles option, showed above. Hence, the following example will generate a single
+clip, from the Forward Camera perspective, with no more than 100 particles:
+
+![3-one-event-one-camera](documentation/3-one-event-one-camera.gif)
+
+## Mosaic
+
+One of the coolest options available is the mosaic option. For every selected event, it generates animations in four different cameras - one of them with shifting perspective - and combines them into a single 2x2 clip containing all four of them.
+
+![4-mosaic](documentation/4-mosaic.gif)
+
+Here's a peak of what the result is like:
+
+![mosaic-peak](documentation/mosaic-peak.png)
+
+## Minimum Average Pz option
+
+**Pz** is the physical quantity of the particle's z direction (relativistic) momentum. The z direction is the one parallel to
+the collision direction, also the axial direction of the detector. Positive values for momentum represent
+particles that go one way, while negative values indicate particles that go the other - basic physics convention.
+
+One of the features
+of this code is that it computes the average value of z momentum for each event, given by the sum of every particle's Pz value
+divided by the total number of particles. Evidently, a lot of the negative values cancel out the positive ones, only to leave us
+with a resulting value that may be either negative or positive. Once this is done, we take the *absolute value* of this result as a
+way to express, in a sense, "how much" the particles tend to go one way *rather* than the other - regardless of which way.
+
+(You may think this sum is always going to be zero because
+of conservation of momentum, but it turns out because of some instability in the center of mass of the initial colliding
+packages, it is usually not. Plus, there may be particles, such as muons, that aren't being taken into account
+because their data is stored separately.)
+
+When running the code, you may choose to only animate events that have this quantity - the absolute value of the average of
+the z direction momentum values (phew!) - greater than a certain number, measured in GeV/c. This way, you may select events
+that have "boosts" of particles to the same side, as in the following image.
+
+![boost](documentation/boost.png)
+
+This is done by using the `--minavgpz` option, like so:
+
+![8-minavgpz](documentation/8-minavgpz.gif)
+
+But how do we figure out a reasonable value to run the code with, given our chosen ESD?
+As the first step of the animation making, the Aliroot software performs an analysis on the ESD file, in order to
+extract the relevant information. As a bonus, it also generates frequency histograms of some physical quantities, such as the one
+at hand. To be able to access these histograms in the first place, though, you must have run the analysis at least once.
+You can run the analysis on your ESD file without making any unwanted animations by simply choosing to animate zero events:
+
+![5-no-event](documentation/5-no-event.gif)
+
+Then you must run Aliroot so you can browse *.root* files through what is called a TBrowser:
+
+```bash
+$ alienv enter AliPhysics/latest-aliroot5-user
+$ aliroot
+$ new TBrowser
+```
+
+![6-newTBrowser](documentation/6-newTBrowser.gif)
+
+A window should open, where you can access the histograms in the path indicated:
+
+```bash
+-> alice
+  -> alice-blender-animation
+    -> aliRoot
+      -> AnalysisResults.root
+        -> MyTask;1
+          -> MyOutputContainer;1
+```
+
+![7-pz-histogram](documentation/7-pz-histogram.png)
+
+There you have it: a histogram that shows how many events are within each interval of our desired quantity, in GeV/c. That way,
+you can have an idea how its distribution behaves inside a given ESD, thus know what values should "do the trick".
