@@ -723,20 +723,22 @@ elif [ "$SAMPLE" = "false" ]; then
   # Make Blender scenes in parallel #
   ###################################
   if ! grep -q "${UNIQUEID}, PARALLEL, SCENES, FINISHED" $PROGRESS_LOG; then
+    if [[ -f make-event-* ]]; then
 
-    MAKE_EVENT_FILES=$(ls -1 make-event-*) # List of all files 'make-event-n'
-    rm -f scene-making
+      MAKE_EVENT_FILES=$(ls -1 make-event-*) # List of all files 'make-event-n'
+      rm -f scene-making
 
-    # Write command to run code inside "make-event-N" on "scene-making" file
-    for FILE in $MAKE_EVENT_FILES; do
-      echo ./${FILE} >> scene-making
-    done
+      # Write command to run code inside "make-event-N" on "scene-making" file
+      for FILE in $MAKE_EVENT_FILES; do
+        echo ./${FILE} >> scene-making
+      done
 
-    # O. Tange (2011): GNU Parallel - The Command-Line Power Tool,
-    # ;login: The USENIX Magazine, February 2011:42-47.
-    chmod +x make-event-*
-    parallel < scene-making
-
+      # O. Tange (2011): GNU Parallel - The Command-Line Power Tool,
+      # ;login: The USENIX Magazine, February 2011:42-47.
+      chmod +x make-event-*
+      parallel < scene-making
+      
+    fi
     timestamp "${UNIQUEID}, PARALLEL, SCENES, FINISHED" >> $PROGRESS_LOG
 
   fi
