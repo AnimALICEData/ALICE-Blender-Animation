@@ -132,6 +132,10 @@ Here's an example of the procedure, using an ESD from the list identified as *Pb
 
 3. In the terminal, run the main script appropriately:
 
+```bash
+$ ./workflow_sketch.sh --download --url http://opendata.cern.ch/record/1106/files/assets/alice/2010/LHC10h/000139465/ESD/0433/AliESDs.root
+```
+
 ![1-urlESD](documentation/1-urlESD.gif)
 
 Here's another working example, including
@@ -253,6 +257,10 @@ Here are some running examples to illustrate how to run the code and make some a
 An event's multiplicity is the number of particles in it. In the following example, the code only animates events with multiplicity
 within the specified range, which is a minimum of 20 particles and a maximum of 300:
 
+```bash
+$ ./workflow_sketch.sh --minparticles 20 --maxparticles 300
+```
+
 ![2-min-max](documentation/2-min-max.gif)
 
 ## One event, one camera
@@ -260,11 +268,19 @@ within the specified range, which is a minimum of 20 particles and a maximum of 
 One of the simplest ways to run the code is to just animate one event, using only one of the available cameras. The ```bash -m ``` option is just an alternative way to use the --maxparticles option, showed above. Hence, the following example will generate a single
 clip, from the Forward Camera perspective, with no more than 100 particles:
 
+```bash
+$ ./workflow_sketch.sh -n 1 -c Forward -m 100
+```
+
 ![3-one-event-one-camera](documentation/3-one-event-one-camera.gif)
 
 ## Mosaic
 
 One of the coolest options available is the mosaic option. For every selected event, it generates animations in four different cameras - one of them with shifting perspective - and combines them into a single 2x2 clip containing all four of them.
+
+```bash
+$ ./workflow_sketch.sh --mosaic -m 100
+```
 
 ![4-mosaic](documentation/4-mosaic.gif)
 
@@ -297,6 +313,10 @@ that have "boosts" of particles to the same side, as in the following image.
 
 This is done by using the `--minavgpz` option, like so:
 
+```bash
+$ ./workflow_sketch.sh --minavgpz 0.5
+```
+
 ![8-minavgpz](documentation/8-minavgpz.gif)
 
 But how do we figure out a reasonable value to run the code with, given our chosen ESD?
@@ -304,6 +324,10 @@ As the first step of the animation making, the Aliroot software performs an anal
 extract the relevant information. As a bonus, it also generates frequency histograms of some physical quantities, such as the one
 at hand. To be able to access these histograms in the first place, though, you must have run the analysis at least once.
 You can run the analysis on your ESD file without making any unwanted animations by simply choosing to animate zero events:
+
+```bash
+$ ./workflow_sketch.sh -n 0
+```
 
 ![5-no-event](documentation/5-no-event.gif)
 
