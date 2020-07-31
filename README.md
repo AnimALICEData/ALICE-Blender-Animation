@@ -1,14 +1,28 @@
 # ALICE Open Data Blender animation
 
-[[_TOC_]]
+
+# Table of Contents
+
+1. [Project Description](#description)
+    1. [How it all works](#how-works)
+2. [Getting started](#getting-started)
+3. [Running the code](#run-code)
+    1. [Workflow Options](#options)
+4. [Default animation](#default)
+5. [Running Examples](#running)
+    1. [Choosing multiplicity range](#multi)
+    2. [One event, one camera](#one-one)
+    3. [Mosaic](#mosaic)
+    4. [Minimum Average Pz option](#minavgpz)
+
 
 ![cover](documentation/cover.png)
 
-## Project Description
+# Project Description <a name="description"></a>
 
 This project has the purpose of generating 3D animations of ALICE particle collision events using data obtained from CERN's Open Data Portal. ALICE stands for "A Large Ion Collider Experiment" and it is a particle detector inside the LHC - Large Hadron Collider -, the world's largest and highest-energy particle collider, located beneath the France–Switzerland border. CERN stands for *Organisation européenne pour la recherche nucléaire*, which is French for European Organization for Nuclear Research, and it is the home of LHC. CERN's Open Data Portal is an open online platform that contains data files from particle physics; those include the ESDs - Event Summary Data files -, which hold information about ALICE events and are of great help making the animations look like real representations of such events.
 
-## How it all works
+## How it all works <a name="how-works"></a>
 
 Before diving into how to run this project, it is important to develop some intuition on how the pieces all fit together to make the whole thing work out just right.
 
@@ -20,7 +34,7 @@ The text files containing all the physics data are then read by the Python scrip
 
 The whole process is a lot more user-friendly than it may seem at first glance; except for installing a couple of programs - ROOT and Blender -, the only thing left for the user to do is run a line of code from the terminal, which executes a script that automatizes everything from running ROOT to rendering and saving every animation *.mp4* file. The final result is a directory inside of which is a series of animation clips, each one corresponding to a different event in the chosen ESD file.
 
-## Laying the groundwork
+# Getting started <a name="getting-started"></a>
 
 This project was developed in Ubuntu 18.04 version of Linux, therefore this is the recommended OS for running it.
 
@@ -83,7 +97,7 @@ $ aliDoctor AliPhysics
 aliBuild build AliPhysics --defaults user -z aliroot5
 ```
 
-# Running the code
+# Running the code <a name="run-code"></a>
 
 At this point, you are ready to pick an ESD file at CERN's Open Data Portal. ESD files regarding the ALICE experiment can be found on
 http://opendata.cern.ch/search?page=1&size=20&experiment=ALICE. You can either manually download your ESD file and save it in the
@@ -148,7 +162,7 @@ the download option:
 Needless to say, if you run the code again after you've already downloaded the ESD the first time, there is no longer need
 to type in the `--download` and `--url` options.
 
-## Workflow options
+## Workflow options <a name="options"></a>
 
    ---------------------------------------------------------------------------------------------------------------------
      Option             Entry                     Action                                                 Standard Value
@@ -237,7 +251,7 @@ After running the script, it may take a long time to generate all the animations
 identified according to the chosen ESD file. Each clip is also identified by event number. Enjoy!
 
 
-# Default Animation
+# Default Animation <a name="default"></a>
 
 For generating a default animation, simply run the script `workflow_sketch.sh` in your terminal as below, from inside the project's repository directory:
 
@@ -248,11 +262,11 @@ For generating a default animation, simply run the script `workflow_sketch.sh` i
 After this, a single default animation should be ready. It will be available inside the `blender` directory, in *.mp4* format. Enjoy! You may want to check the table
 above for information on the using options.
 
-# Running Examples
+# Running Examples <a name="running"></a>
 
 Here are some running examples to illustrate how to run the code and make some animations.
 
-## Choosing multiplicity range
+## Choosing multiplicity range <a name="multi"></a>
 
 An event's multiplicity is the number of particles in it. In the following example, the code only animates events with multiplicity
 within the specified range, which is a minimum of 20 particles and a maximum of 300:
@@ -263,7 +277,7 @@ $ ./workflow_sketch.sh --minparticles 20 --maxparticles 300
 
 ![2-min-max](documentation/2-min-max.gif)
 
-## One event, one camera
+## One event, one camera <a name="one-one"></a>
 
 One of the simplest ways to run the code is to just animate one event, using only one of the available cameras. The ```bash -m ``` option is just an alternative way to use the --maxparticles option, showed above. Hence, the following example will generate a single
 clip, from the Forward Camera perspective, with no more than 100 particles:
@@ -274,7 +288,7 @@ $ ./workflow_sketch.sh -n 1 -c Forward -m 100
 
 ![3-one-event-one-camera](documentation/3-one-event-one-camera.gif)
 
-## Mosaic
+## Mosaic <a name="mosaic"></a>
 
 One of the coolest options available is the mosaic option. For every selected event, it generates animations in four different cameras - one of them with shifting perspective - and combines them into a single 2x2 clip containing all four of them.
 
@@ -288,7 +302,7 @@ Here's a peak of what the result is like:
 
 ![mosaic-peak](documentation/mosaic-peak.png)
 
-## Minimum Average Pz option
+## Minimum Average Pz option <a name="minavgpz"></a>
 
 **Pz** is the physical quantity of the particle's z direction (relativistic) momentum. The z direction is the one parallel to
 the collision direction, also the axial direction of the detector. Positive values for momentum represent
