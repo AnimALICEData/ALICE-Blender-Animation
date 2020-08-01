@@ -723,7 +723,7 @@ elif [ "$SAMPLE" = "false" ]; then
   # Make Blender scenes in parallel #
   ###################################
   if ! grep -q "${UNIQUEID}, PARALLEL, SCENES, FINISHED" $PROGRESS_LOG; then
-    if [[ -f make-event-* ]]; then
+    if $(ls | grep -q "make-event"); then
 
       MAKE_EVENT_FILES=$(ls -1 make-event-*) # List of all files 'make-event-n'
       rm -f scene-making
