@@ -777,10 +777,10 @@ elif [ "$SAMPLE" = "false" ]; then
     ########################
     if [ "$MOSAIC" = "true" ]; then
 
-      if ! grep -q "${UNIQUEID}, ${EVENT_ID}, MOSAIC, FINISHED" $PROGRESS_LOG; then
+      if ! grep -q "${UNIQUEID}, EVENT ${EVENT_ID}, MOSAIC, FINISHED" $PROGRESS_LOG; then
         pushd ${BLENDER_OUTPUT}
 
-        timestamp "${UNIQUEID}, ${EVENT_ID}, MOSAIC, STARTING, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
+        timestamp "${UNIQUEID}, EVENT ${EVENT_ID}, MOSAIC, STARTING, $NUMBER_OF_PARTICLES PARTICLES" >> $PROGRESS_LOG
 
         # Delete existing incomplete .mp4 file
         if [[ -f ${EVENT_UNIQUE_ID}_Mosaic.mp4 ]]; then
@@ -800,7 +800,7 @@ elif [ "$SAMPLE" = "false" ]; then
         # Add Mosaic to list to make video strip containing all mosaics
         echo file \'${EVENT_UNIQUE_ID}_${FPS_DUR}FPS_Mosaic.mp4\' >> videostrip.txt
 
-        timestamp "${UNIQUEID}, ${EVENT_ID}, MOSAIC, FINISHED, $NUMBER_OF_PARTICLES" >> $PROGRESS_LOG
+        timestamp "${UNIQUEID}, EVENT ${EVENT_ID}, MOSAIC, FINISHED, $NUMBER_OF_PARTICLES PARTICLES" >> $PROGRESS_LOG
 
         popd
       fi
